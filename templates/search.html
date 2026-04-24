@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Search — Movie Watchlist{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Search Movies & TV Shows</h1>
+</div>
+
+<!-- Search input -->
+<div class="search-wrapper">
+  <input
+    type="text"
+    id="search-input"
+    class="search-input"
+    placeholder="Search for a movie or TV show…"
+    autocomplete="off"
+    autofocus
+  />
+  <span class="search-icon">🔍</span>
+</div>
+
+<!-- Results area -->
+<div id="search-status" class="search-status"></div>
+<div class="card-grid" id="search-results"></div>
+
+<!-- Pagination -->
+<div class="pagination" id="pagination"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
+{% endblock %}
