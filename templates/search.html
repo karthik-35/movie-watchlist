@@ -1,30 +1,27 @@
 {% extends "base.html" %}
-{% block title %}Search — Movie Watchlist{% endblock %}
+{% block title %}Search — Watchlist{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <h1>Search Movies & TV Shows</h1>
+<div class="search-page">
+  <div class="search-hero">
+    <h1>Find Something to Watch</h1>
+    <div class="search-bar-wrap">
+      <span class="search-bar-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+      </span>
+      <input type="text" id="search-input" class="search-bar"
+             placeholder="Search movies, TV shows, people…" autocomplete="off" autofocus />
+    </div>
+  </div>
+
+  <div class="search-body">
+    <div id="search-status" class="search-status"></div>
+    <div class="poster-grid" id="search-results"></div>
+    <div class="pagination" id="pagination"></div>
+  </div>
 </div>
-
-<!-- Search input -->
-<div class="search-wrapper">
-  <input
-    type="text"
-    id="search-input"
-    class="search-input"
-    placeholder="Search for a movie or TV show…"
-    autocomplete="off"
-    autofocus
-  />
-  <span class="search-icon">🔍</span>
-</div>
-
-<!-- Results area -->
-<div id="search-status" class="search-status"></div>
-<div class="card-grid" id="search-results"></div>
-
-<!-- Pagination -->
-<div class="pagination" id="pagination"></div>
 {% endblock %}
 
 {% block scripts %}

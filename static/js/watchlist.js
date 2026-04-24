@@ -68,13 +68,14 @@ function renderWatchlistCard(item) {
   const watchedBadge = watched ? `<div class="watched-badge">✓ Watched</div>` : "";
   const toggleLabel = watched ? "Mark Unwatched" : "Mark Watched";
   const toggleClass = watched ? "btn-ghost" : "btn-success";
+  const detailUrl   = `/title/${media_type}/${tmdb_id}`;
 
   return `
 <div class="card" id="wl-card-${tmdb_id}-${media_type}">
   ${watchedBadge}
-  ${poster}
+  <a href="${detailUrl}" class="card-poster-link">${poster}</a>
   <div class="card-body">
-    <div class="card-title">${title}</div>
+    <a href="${detailUrl}" class="card-title-link">${title}</a>
     <div class="card-meta">
       <span class="badge">${media_type === "movie" ? "Movie" : "TV"}</span>
       <span>${releaseYear(release_date)}</span>

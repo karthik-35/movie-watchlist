@@ -1,29 +1,83 @@
 {% extends "base.html" %}
-{% block title %}My Watchlist{% endblock %}
+{% block title %}Home — Watchlist{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <h1>My Watchlist</h1>
-  <div class="filter-tabs">
-    <button class="tab-btn active" data-filter="all">All</button>
-    <button class="tab-btn" data-filter="unwatched">Unwatched</button>
-    <button class="tab-btn" data-filter="watched">Watched</button>
+<!-- Hero banner — JS populates backdrop, title, info, buttons -->
+<section class="hero" id="hero">
+  <div class="hero-bg" id="hero-bg"></div>
+  <div class="hero-gradient"></div>
+  <div class="hero-content" id="hero-content">
+    <!-- Skeleton -->
+    <div class="skeleton" style="width:500px;max-width:90%;height:3.5rem;border-radius:6px"></div>
+    <div class="skeleton" style="width:260px;height:1.2rem;border-radius:4px;margin-top:.75rem"></div>
+    <div class="skeleton" style="width:420px;max-width:90%;height:3.5rem;border-radius:4px;margin-top:1rem"></div>
+    <div class="hero-actions skeleton-actions" style="display:flex;gap:.75rem;margin-top:1.5rem">
+      <div class="skeleton" style="width:140px;height:46px;border-radius:6px"></div>
+      <div class="skeleton" style="width:140px;height:46px;border-radius:6px"></div>
+    </div>
   </div>
-</div>
+  <!-- Slim info panel at bottom-right (age rating, genres) -->
+  <div class="hero-side" id="hero-side"></div>
+</section>
 
-<!-- Stats bar -->
-<div class="stats-bar" id="stats-bar"></div>
+<!-- Content rows — each row is a horizontally scrollable strip of cards -->
+<div class="rows-container">
+  <div class="row-section" id="row-trending">
+    <h2 class="row-title">Trending Now</h2>
+    <div class="row-wrap">
+      <button class="row-arrow row-arrow-left" onclick="scrollRow('row-trending-cards', -1)">&#8249;</button>
+      <div class="row-cards" id="row-trending-cards"></div>
+      <button class="row-arrow row-arrow-right" onclick="scrollRow('row-trending-cards', 1)">&#8250;</button>
+    </div>
+  </div>
 
-<!-- Watchlist grid — populated by JS -->
-<div class="card-grid" id="watchlist-grid">
-  <div class="empty-state" id="empty-state" style="display:none;">
-    <div class="empty-icon">📭</div>
-    <p>Your watchlist is empty.</p>
-    <a href="/search" class="btn btn-primary">Find something to watch</a>
+  <div class="row-section" id="row-movies">
+    <h2 class="row-title">Popular Movies</h2>
+    <div class="row-wrap">
+      <button class="row-arrow row-arrow-left" onclick="scrollRow('row-movies-cards', -1)">&#8249;</button>
+      <div class="row-cards" id="row-movies-cards"></div>
+      <button class="row-arrow row-arrow-right" onclick="scrollRow('row-movies-cards', 1)">&#8250;</button>
+    </div>
+  </div>
+
+  <div class="row-section" id="row-tv">
+    <h2 class="row-title">Popular TV Shows</h2>
+    <div class="row-wrap">
+      <button class="row-arrow row-arrow-left" onclick="scrollRow('row-tv-cards', -1)">&#8249;</button>
+      <div class="row-cards" id="row-tv-cards"></div>
+      <button class="row-arrow row-arrow-right" onclick="scrollRow('row-tv-cards', 1)">&#8250;</button>
+    </div>
+  </div>
+
+  <div class="row-section" id="row-toprated">
+    <h2 class="row-title">Top Rated</h2>
+    <div class="row-wrap">
+      <button class="row-arrow row-arrow-left" onclick="scrollRow('row-toprated-cards', -1)">&#8249;</button>
+      <div class="row-cards" id="row-toprated-cards"></div>
+      <button class="row-arrow row-arrow-right" onclick="scrollRow('row-toprated-cards', 1)">&#8250;</button>
+    </div>
+  </div>
+
+  <div class="row-section" id="row-hindi">
+    <h2 class="row-title">Hindi Cinema</h2>
+    <div class="row-wrap">
+      <button class="row-arrow row-arrow-left" onclick="scrollRow('row-hindi-cards', -1)">&#8249;</button>
+      <div class="row-cards" id="row-hindi-cards"></div>
+      <button class="row-arrow row-arrow-right" onclick="scrollRow('row-hindi-cards', 1)">&#8250;</button>
+    </div>
+  </div>
+
+  <div class="row-section" id="row-korean">
+    <h2 class="row-title">Korean Dramas & Films</h2>
+    <div class="row-wrap">
+      <button class="row-arrow row-arrow-left" onclick="scrollRow('row-korean-cards', -1)">&#8249;</button>
+      <div class="row-cards" id="row-korean-cards"></div>
+      <button class="row-arrow row-arrow-right" onclick="scrollRow('row-korean-cards', 1)">&#8250;</button>
+    </div>
   </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/watchlist.js') }}"></script>
+<script src="{{ url_for('static', filename='js/home.js') }}"></script>
 {% endblock %}

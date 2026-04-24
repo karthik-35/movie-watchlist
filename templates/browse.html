@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }} — Watchlist{% endblock %}
+
+{% block content %}
+<div class="browse-page">
+  <div class="browse-header">
+    <h1 class="browse-title">{{ page_title }}</h1>
+  </div>
+
+  <!-- JS reads data-category to know which API to call -->
+  <div id="browse-root" data-category="{{ category }}">
+    <div id="browse-rows"></div>
+    <div class="browse-load-more" id="browse-load-more" style="display:none">
+      <button class="btn btn-ghost" onclick="loadMoreBrowse()">Load More</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/browse.js') }}"></script>
+{% endblock %}

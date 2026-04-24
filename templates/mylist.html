@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}My List — Watchlist{% endblock %}
+
+{% block content %}
+<div class="mylist-page">
+  <div class="mylist-header">
+    <h1>My List</h1>
+    <div class="filter-tabs">
+      <button class="tab-btn active" data-filter="all">All</button>
+      <button class="tab-btn" data-filter="unwatched">Unwatched</button>
+      <button class="tab-btn" data-filter="watched">Watched</button>
+    </div>
+  </div>
+
+  <div class="mylist-stats" id="mylist-stats"></div>
+
+  <div class="poster-grid" id="mylist-grid"></div>
+
+  <div class="mylist-empty" id="mylist-empty" style="display:none">
+    <div class="empty-icon">📋</div>
+    <h2>Your list is empty</h2>
+    <p>Add movies and shows to keep track of what you want to watch.</p>
+    <a href="/search" class="btn btn-red">Browse Titles</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/mylist.js') }}"></script>
+{% endblock %}
