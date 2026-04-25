@@ -2,17 +2,35 @@
 {% block title %}{{ page_title }} — Watchlist{% endblock %}
 
 {% block content %}
+<!-- Hero banner (non-language pages only) -->
+{% if not (is_language is defined and is_language) %}
+<div class="browse-hero" id="browse-hero" style="display:none">
+  <div class="browse-hero-bg" id="browse-hero-bg"></div>
+  <div class="hero-gradient"></div>
+  <div class="browse-hero-content hero-content" id="browse-hero-content"></div>
+</div>
+{% endif %}
+
 <div class="browse-page">
   <div class="browse-header">
     <h1 class="browse-title">{{ page_title }}</h1>
+    {% if is_language is defined and is_language %}
+    <div class="browse-prefs">
+      <select class="prefs-select" onchange="location.href='/browse/language/'+this.value">
+        {% for lname, lcode in all_languages %}
+        <option value="{{ lcode }}" {% if lcode == lang_code %}selected{% endif %}>{{ lname }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
   </div>
 
-  <!-- JS reads data-category to know which API to call -->
+  <!-- Genre bar injected here by browse.js (movies/tv only) -->
+  <div class="genre-bar" id="browse-genre-bar"></div>
+
+  <!-- JS reads data-category to know which rows to load -->
   <div id="browse-root" data-category="{{ category }}">
     <div id="browse-rows"></div>
-    <div class="browse-load-more" id="browse-load-more" style="display:none">
-      <button class="btn btn-ghost" onclick="loadMoreBrowse()">Load More</button>
-    </div>
   </div>
 </div>
 {% endblock %}

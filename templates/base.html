@@ -20,21 +20,7 @@
       <li><a href="/tv" class="nav-link {% if request.endpoint == 'tv_page' %}active{% endif %}">TV Shows</a></li>
       <li><a href="/popular" class="nav-link {% if request.endpoint == 'popular_page' %}active{% endif %}">Popular</a></li>
       <li><a href="/mylist" class="nav-link {% if request.endpoint == 'mylist_page' %}active{% endif %}">My List</a></li>
-      <li class="nav-dropdown">
-        <a href="#" class="nav-link {% if request.endpoint == 'language_browse' %}active{% endif %}">
-          Browse by Language <span class="dropdown-arrow">▾</span>
-        </a>
-        <ul class="dropdown-menu">
-          <li><a href="/browse/language/hi">Hindi</a></li>
-          <li><a href="/browse/language/ko">Korean</a></li>
-          <li><a href="/browse/language/es">Spanish</a></li>
-          <li><a href="/browse/language/ja">Japanese</a></li>
-          <li><a href="/browse/language/fr">French</a></li>
-          <li><a href="/browse/language/it">Italian</a></li>
-          <li><a href="/browse/language/de">German</a></li>
-          <li><a href="/browse/language/ta">Tamil</a></li>
-        </ul>
-      </li>
+      <li><a href="/browse/language" class="nav-link {% if request.endpoint in ('language_browse', 'language_browse_default') %}active{% endif %}">Browse by Language</a></li>
     </ul>
   </div>
   <div class="navbar-right">

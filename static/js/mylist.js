@@ -1,5 +1,5 @@
 /**
- * mylist.js — My List page: filter tabs, stats, watched toggle, rating, remove.
+ * mylist.js — My List page: 6-column poster grid with hover overlay.
  */
 
 let activeFilter = "all";
@@ -7,12 +7,13 @@ let activeFilter = "all";
 const gridEl  = document.getElementById("mylist-grid");
 const emptyEl = document.getElementById("mylist-empty");
 const statsEl = document.getElementById("mylist-stats");
+const countEl = document.getElementById("mylist-count");
 
 async function loadList(filter = "all") {
   activeFilter = filter;
-  gridEl.innerHTML = skeletons(8);
+  gridEl.innerHTML = skeletons(12);
 
-  const url  = filter === "all" ? "/api/watchlist" : `/api/watchlist?filter=${filter}`;
+  const url = filter === "all" ? "/api/watchlist" : `/api/watchlist?filter=${filter}`;
   try {
     const data  = await fetch(url).then((r) => r.json());
     const items = data.items || [];
@@ -24,11 +25,16 @@ async function loadList(filter = "all") {
 }
 
 function renderStats(items) {
-  const total    = items.length;
-  const watched  = items.filter((i) => i.watched).length;
-  const rated    = items.filter((i) => i.rating).length;
-  const avg      = rated ? (items.reduce((s, i) => s + (i.rating || 0), 0) / rated).toFixed(1) : "–";
-  statsEl.innerHTML = `
+  const total   = items.length;
+  const watched = items.filter((i) => i.watched).length;
+  const rated   = items.filter((i) => i.rating).length;
+  const avg     = rated
+    ? (items.reduce((s, i) => s + (i.rating || 0), 0) / rated).toFixed(1)
+    : "–";
+
+  if (countEl) countEl.textContent = total ? `${total} title${total === 1 ? "" : "s"}` : "";
+
+  if (statsEl) statsEl.innerHTML = `
     <span><strong>${total}</strong> saved</span>
     <span><strong>${watched}</strong> watched</span>
     <span><strong>${total - watched}</strong> to watch</span>
@@ -39,7 +45,7 @@ function renderStats(items) {
 function renderItems(items) {
   if (!items.length) {
     gridEl.innerHTML = "";
-    emptyEl.style.display = "block";
+    emptyEl.style.display = "flex";
     return;
   }
   emptyEl.style.display = "none";
@@ -52,34 +58,47 @@ function renderMyListCard(item) {
   const score = vote_average ? vote_average.toFixed(1) : "–";
 
   const img = poster_path
-    ? `<img class="poster-card-img" src="${POSTER_BASE}${poster_path}" alt="${escHtml(title)}" loading="lazy">`
-    : `<div class="poster-card-placeholder">🎬</div>`;
+    ? `<img class="mylist-poster-img" src="${POSTER_BASE}${poster_path}" alt="${escHtml(title)}" loading="lazy">`
+    : `<div class="mylist-poster-placeholder">🎬</div>`;
 
-  const watchedBadge  = watched ? `<div class="poster-card-watched-badge">WATCHED</div>` : "";
-  const toggleLabel   = watched ? "Unwatch" : "Watched";
-  const toggleClass   = watched ? "btn-ghost" : "btn-success";
+  const watchedBadge = watched ? `<div class="mylist-watched-badge">WATCHED</div>` : "";
+  const toggleLabel  = watched ? "Unwatch"  : "Watched";
+  const toggleCls    = watched ? "btn-ghost" : "btn-success";
 
   return `
-<div class="poster-card" id="ml-${tmdb_id}-${media_type}">
-  <div class="poster-card-img-wrap">
-    <a href="/title/${media_type}/${tmdb_id}">${img}</a>
+<div class="mylist-card${watched ? " watched" : ""}" id="ml-${tmdb_id}-${media_type}">
+  <div class="mylist-poster-wrap">
+    ${img}
     ${watchedBadge}
   </div>
-  <div class="poster-card-body">
-    <a href="/title/${media_type}/${tmdb_id}" class="poster-card-title">${escHtml(title)}</a>
-    <div class="poster-card-meta">
+  <div class="mylist-hover-card">
+    <div class="mylist-hover-title">${escHtml(title)}</div>
+    <div class="mylist-hover-meta">
       <span class="type-badge">${media_type === "movie" ? "Movie" : "TV"}</span>
       ${year  ? `<span>${year}</span>` : ""}
       ${score !== "–" ? `<span class="score-badge">⭐ ${score}</span>` : ""}
     </div>
-    ${renderStars(rating, tmdb_id, media_type)}
-    <div class="poster-card-actions">
-      <button class="btn btn-sm ${toggleClass}" id="tog-${tmdb_id}-${media_type}"
-              onclick="toggleWatched(${tmdb_id},'${media_type}',this)">${toggleLabel}</button>
+    <div class="mylist-hover-actions">
+      <button class="btn btn-sm btn-red" onclick="playTrailer(${tmdb_id},'${media_type}')">▶ Trailer</button>
+      <button class="btn btn-sm ${toggleCls}" id="tog-${tmdb_id}-${media_type}"
+        onclick="toggleWatched(${tmdb_id},'${media_type}',this)">${toggleLabel}</button>
       <button class="btn btn-sm btn-danger" onclick="removeItem(${tmdb_id},'${media_type}')">✕</button>
     </div>
   </div>
 </div>`;
+}
+
+async function playTrailer(tmdbId, mediaType) {
+  try {
+    const data = await fetch(`/api/detail/${mediaType}/${tmdbId}`).then((r) => r.json());
+    if (data.trailer?.key) {
+      openTrailer(data.trailer.key);
+    } else {
+      showToast("No trailer found", "info");
+    }
+  } catch {
+    showToast("Failed to load trailer", "error");
+  }
 }
 
 async function toggleWatched(tmdbId, mediaType, btn) {
@@ -94,13 +113,15 @@ async function toggleWatched(tmdbId, mediaType, btn) {
   btn.textContent = isWatched ? "Unwatch"  : "Watched";
   btn.className   = `btn btn-sm ${isWatched ? "btn-ghost" : "btn-success"}`;
 
-  const imgWrap = card.querySelector(".poster-card-img-wrap");
-  let badge = imgWrap.querySelector(".poster-card-watched-badge");
+  card.classList.toggle("watched", isWatched);
+
+  const wrap  = card.querySelector(".mylist-poster-wrap");
+  let   badge = wrap.querySelector(".mylist-watched-badge");
   if (isWatched && !badge) {
     badge = document.createElement("div");
-    badge.className   = "poster-card-watched-badge";
+    badge.className   = "mylist-watched-badge";
     badge.textContent = "WATCHED";
-    imgWrap.appendChild(badge);
+    wrap.appendChild(badge);
   } else if (!isWatched && badge) {
     badge.remove();
   }
@@ -122,7 +143,7 @@ async function removeItem(tmdbId, mediaType) {
       card.style.transform  = "scale(.9)";
       card.addEventListener("transitionend", () => {
         card.remove();
-        if (!gridEl.querySelector(".poster-card")) loadList(activeFilter);
+        if (!gridEl.querySelector(".mylist-card")) loadList(activeFilter);
       });
     }
     showToast("Removed from My List", "info");
@@ -133,13 +154,8 @@ async function removeItem(tmdbId, mediaType) {
 
 function skeletons(n) {
   return Array.from({ length: n }, () => `
-    <div class="poster-card">
-      <div class="skeleton" style="aspect-ratio:2/3;width:100%"></div>
-      <div class="poster-card-body" style="gap:.5rem">
-        <div class="skeleton" style="height:12px;width:80%"></div>
-        <div class="skeleton" style="height:12px;width:55%"></div>
-        <div class="skeleton" style="height:30px;width:100%;margin-top:.5rem;border-radius:4px"></div>
-      </div>
+    <div class="mylist-card">
+      <div class="mylist-poster-wrap skeleton" style="aspect-ratio:2/3;width:100%"></div>
     </div>`).join("");
 }
 

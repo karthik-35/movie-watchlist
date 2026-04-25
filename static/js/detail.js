@@ -76,16 +76,18 @@ function render(d) {
   // Watchlist button state
   checkInList();
 
-  // Providers
-  if (d.providers?.length) {
+  // Providers (deduped, with smart search URLs)
+  const uniqueProviders = deduplicateProviders(d.providers || []);
+  if (uniqueProviders.length) {
     document.getElementById("providers-section").style.display = "block";
-    document.getElementById("provider-pills").innerHTML = d.providers.map((p) => {
-      const url = PLATFORM_URLS[p.provider_id] || "#";
+    document.getElementById("provider-pills").innerHTML = uniqueProviders.map((p) => {
+      const url = getPlatformUrl(p, d.title || "");
       const img = p.logo_url
         ? `<img src="${p.logo_url}" alt="${escHtml(p.name)}" width="28" height="28" style="border-radius:6px;object-fit:cover">`
         : "";
-      return `<a class="provider-pill" href="${url}" target="_blank" rel="noopener">
-        ${img}<span>${escHtml(p.name)}</span></a>`;
+      return url
+        ? `<a class="provider-pill" href="${url}" target="_blank" rel="noopener noreferrer">${img}<span>${escHtml(p.name)}</span></a>`
+        : `<span class="provider-pill">${img}<span>${escHtml(p.name)}</span></span>`;
     }).join("");
   }
 
