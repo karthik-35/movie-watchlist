@@ -12,29 +12,73 @@
 {% endif %}
 
 <div class="browse-page">
+
+  {% if is_language is defined and is_language %}
+  <!-- Netflix-style preferences bar for language pages -->
+  <div class="lang-prefs-bar">
+    <h1 class="browse-title">Browse by Languages</h1>
+    <div class="lang-prefs-right">
+      <span class="prefs-label">Select Your Preferences</span>
+      <div class="prefs-dropdowns">
+        <div class="prefs-select-wrap">
+          <select class="prefs-select" id="lang-mode-select"
+            onchange="changeLangMode(this.value)">
+            <option value="original"  {% if lang_mode == 'original'  %}selected{% endif %}>Original Language</option>
+            <option value="dubbed"    {% if lang_mode == 'dubbed'    %}selected{% endif %}>Dubbing</option>
+            <option value="subtitles" {% if lang_mode == 'subtitles' %}selected{% endif %}>Subtitles</option>
+          </select>
+          <span class="prefs-select-arrow">▾</span>
+        </div>
+        <div class="prefs-select-wrap">
+          <select class="prefs-select" id="lang-lang-select"
+            onchange="changeLangLang(this.value)">
+            {% for lname, lcode in all_languages %}
+            <option value="{{ lcode }}"
+              {% if lcode == lang_code and lname != 'Flemish' %}selected{% endif %}
+              {% if lname == 'Flemish' and lang_code == 'nl' and loop.index > 13 %}selected{% endif %}>
+              {{ lname }}
+            </option>
+            {% endfor %}
+          </select>
+          <span class="prefs-select-arrow">▾</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- Standard header for non-language browse pages -->
   <div class="browse-header">
     <h1 class="browse-title">{{ page_title }}</h1>
-    {% if is_language is defined and is_language %}
-    <div class="browse-prefs">
-      <select class="prefs-select" onchange="location.href='/browse/language/'+this.value">
-        {% for lname, lcode in all_languages %}
-        <option value="{{ lcode }}" {% if lcode == lang_code %}selected{% endif %}>{{ lname }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    {% endif %}
   </div>
+  {% endif %}
 
   <!-- Genre bar injected here by browse.js (movies/tv only) -->
   <div class="genre-bar" id="browse-genre-bar"></div>
 
   <!-- JS reads data-category to know which rows to load -->
-  <div id="browse-root" data-category="{{ category }}">
+  <div id="browse-root" data-category="{{ category }}"
+    {% if is_language is defined and is_language %}
+    data-lang-mode="{{ lang_mode }}"
+    data-lang-code="{{ lang_code }}"
+    {% endif %}>
     <div id="browse-rows"></div>
   </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script>
+{% if is_language is defined and is_language %}
+function changeLangMode(mode) {
+  const lang = document.getElementById('lang-lang-select').value;
+  location.href = '/browse/language/' + lang + '?mode=' + mode;
+}
+function changeLangLang(lang) {
+  const mode = document.getElementById('lang-mode-select').value;
+  location.href = '/browse/language/' + lang + '?mode=' + mode;
+}
+{% endif %}
+</script>
 <script src="{{ url_for('static', filename='js/browse.js') }}"></script>
 {% endblock %}

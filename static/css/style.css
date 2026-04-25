@@ -807,25 +807,70 @@ button { font-family: inherit; cursor: pointer; }
   max-width: 50%;
 }
 
-/* Language prefs selector */
-.browse-prefs { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
+/* Netflix-style language preferences bar */
+.lang-prefs-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  padding: 2rem 4% 1.25rem;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.lang-prefs-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.prefs-label {
+  font-size: .8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.prefs-dropdowns {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+}
+
+.prefs-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
 .prefs-select {
   -webkit-appearance: none;
   appearance: none;
-  background-color: rgba(20,20,20,.85);
+  background-color: rgba(0,0,0,.7);
   color: var(--text);
-  border: 1px solid rgba(255,255,255,.28);
-  border-radius: 4px;
-  padding: .42rem 2.1rem .42rem .8rem;
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 3px;
+  padding: .45rem 2.4rem .45rem .85rem;
   font-size: .82rem;
+  font-weight: 500;
   cursor: pointer;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23b3b3b3' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right .6rem center;
-  background-size: 10px;
+  font-family: inherit;
+  min-width: 140px;
+  transition: border-color var(--tr), background var(--tr);
 }
-.prefs-select:focus { outline: none; border-color: rgba(255,255,255,.5); }
-.prefs-select option { background: #1c1c1c; }
+.prefs-select:hover  { border-color: rgba(255,255,255,.6); background-color: rgba(0,0,0,.85); }
+.prefs-select:focus  { outline: none; border-color: rgba(255,255,255,.7); }
+.prefs-select option { background: #141414; color: #fff; }
+
+.prefs-select-arrow {
+  position: absolute;
+  right: .7rem;
+  font-size: .65rem;
+  color: var(--text-muted);
+  pointer-events: none;
+  user-select: none;
+}
 
 /* Genre bar */
 .genre-bar {

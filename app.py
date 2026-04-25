@@ -55,15 +55,15 @@ LANGUAGE_NAMES = {
 }
 
 ALL_LANGUAGES = [
-    ("English",          "en"), ("Arabic",        "ar"), ("Danish",    "da"),
-    ("Dutch",            "nl"), ("Filipino",       "tl"), ("French",    "fr"),
-    ("German",           "de"), ("Hebrew",         "he"), ("Hindi",     "hi"),
-    ("Indonesian",       "id"), ("Italian",        "it"), ("Japanese",  "ja"),
-    ("Korean",           "ko"), ("Malay",          "ms"), ("Malayalam", "ml"),
-    ("Mandarin/Chinese", "zh"), ("Norwegian",      "no"), ("Polish",    "pl"),
-    ("Portuguese",       "pt"), ("Spanish",        "es"), ("Swedish",   "sv"),
-    ("Tamil",            "ta"), ("Telugu",         "te"), ("Thai",      "th"),
-    ("Turkish",          "tr"), ("Vietnamese",     "vi"),
+    ("English",    "en"), ("Hindi",      "hi"), ("Telugu",    "te"),
+    ("Tamil",      "ta"), ("Malayalam",  "ml"), ("Korean",    "ko"),
+    ("Japanese",   "ja"), ("Spanish",    "es"), ("French",    "fr"),
+    ("German",     "de"), ("Arabic",     "ar"), ("Danish",    "da"),
+    ("Dutch",      "nl"), ("Filipino",   "tl"), ("Flemish",   "nl"),
+    ("Hebrew",     "he"), ("Indonesian", "id"), ("Italian",   "it"),
+    ("Malay",      "ms"), ("Mandarin",   "zh"), ("Norwegian", "no"),
+    ("Polish",     "pl"), ("Portuguese", "pt"), ("Swedish",   "sv"),
+    ("Thai",       "th"), ("Turkish",    "tr"), ("Vietnamese","vi"),
 ]
 
 db.init_db()
@@ -96,12 +96,15 @@ def language_browse_default():
 
 @app.route("/browse/language/<lang>")
 def language_browse(lang):
-    name = LANGUAGE_NAMES.get(lang, lang.upper())
+    name     = LANGUAGE_NAMES.get(lang, lang.upper())
+    lang_mode = request.args.get("mode", "original")
     return render_template("browse.html",
                            category=f"lang-{lang}",
-                           page_title=f"{name} Cinema",
+                           page_title="Browse by Languages",
                            is_language=True,
                            lang_code=lang,
+                           lang_name=name,
+                           lang_mode=lang_mode,
                            all_languages=ALL_LANGUAGES)
 
 @app.route("/search")
