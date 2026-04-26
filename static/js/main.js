@@ -405,7 +405,7 @@ function openTrailer(youtubeKey) {
   _trailerKey = youtubeKey;
   const modal  = document.getElementById("trailer-modal");
   const iframe = document.getElementById("trailer-modal-iframe");
-  iframe.src   = `https://www.youtube-nocookie.com/embed/${youtubeKey}?autoplay=1&rel=0&fs=1`;
+  iframe.src   = `https://www.youtube-nocookie.com/embed/${youtubeKey}?autoplay=1&controls=0&modestbranding=1&rel=0`;
   modal.classList.add("open");
   document.body.style.overflow = "hidden";
 }
@@ -428,28 +428,25 @@ function openHeroTrailer(youtubeKey) {
 
   // YouTube iframe
   const iframe = document.createElement("iframe");
-  iframe.src = `https://www.youtube-nocookie.com/embed/${youtubeKey}?autoplay=1&fs=1&modestbranding=1&rel=0`;
-  iframe.setAttribute("allow", "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen");
-  iframe.setAttribute("allowfullscreen", "");
+  iframe.src = `https://www.youtube-nocookie.com/embed/${youtubeKey}?autoplay=1&controls=0&modestbranding=1&rel=0`;
+  iframe.setAttribute("allow", "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture");
   iframe.className = "hero-video-iframe";
 
   overlay.appendChild(iframe);
   document.body.appendChild(overlay);
   document.body.style.overflow = "hidden";
 
-  // ── Request fullscreen on the div synchronously within the click gesture ──
+  // Request fullscreen on the overlay div synchronously inside the click gesture
   if (overlay.requestFullscreen) {
     overlay.requestFullscreen().catch(() => {});
   } else if (overlay.webkitRequestFullscreen) {
     overlay.webkitRequestFullscreen();
-  } else if (overlay.mozRequestFullScreen) {
-    overlay.mozRequestFullScreen();
   }
 
-  // ── ESC / fullscreen-exit listeners ──────────────────────────────────────
   function onKeyDown(e) {
     if (e.key === "Escape") closeHeroTrailer();
   }
+  // Close overlay when browser exits fullscreen (e.g. ESC key in native fullscreen)
   function onFsChange() {
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
       closeHeroTrailer();
@@ -479,29 +476,12 @@ function closeHeroTrailer() {
   }
 }
 
-/** Request fullscreen on the trailer iframe — called from the modal's Full Screen button. */
-function requestTrailerFullscreen() {
-  const iframe = document.getElementById("trailer-modal-iframe");
-  if (iframe.requestFullscreen) {
-    iframe.requestFullscreen().catch(() => {});
-  } else if (iframe.webkitRequestFullscreen) {
-    iframe.webkitRequestFullscreen();
-  } else if (iframe.mozRequestFullScreen) {
-    iframe.mozRequestFullScreen();
-  }
-}
-
 function closeTrailer() {
   const modal  = document.getElementById("trailer-modal");
   const iframe = document.getElementById("trailer-modal-iframe");
   iframe.src   = "";
   modal.classList.remove("open");
   document.body.style.overflow = "";
-  if (document.fullscreenElement) {
-    document.exitFullscreen().catch(() => {});
-  } else if (document.webkitFullscreenElement) {
-    document.webkitExitFullscreen();
-  }
 }
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeTrailer(); });
 
