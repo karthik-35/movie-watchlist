@@ -71,16 +71,10 @@ function render(d) {
   if (langs) langEl.innerHTML = `<strong>Languages:</strong> ${escHtml(langs)}`;
   else langEl.style.display = "none";
 
-  // Trailer button (hero) + inline trailer section
+  // Trailer button (hero only)
   if (d.trailer?.key) {
     window._detailTrailerKey = d.trailer.key;
-    const heroBtn = document.getElementById("detail-trailer-btn");
-    heroBtn.style.display = "inline-flex";
-
-    const trailerSec = document.getElementById("trailer-section");
-    trailerSec.style.display = "block";
-    document.getElementById("detail-trailer-iframe").src =
-      `https://www.youtube-nocookie.com/embed/${d.trailer.key}?rel=0`;
+    document.getElementById("detail-trailer-btn").style.display = "inline-flex";
   }
 
   // Watchlist button state
