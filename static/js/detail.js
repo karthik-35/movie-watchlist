@@ -22,7 +22,7 @@ async function loadDetail() {
 }
 
 function render(d) {
-  document.title = `${d.title} — Watchlist`;
+  document.title = `${d.title} — CineTrack`;
 
   // Backdrop
   const heroImg = document.getElementById("detail-hero-img");
@@ -37,15 +37,25 @@ function render(d) {
   // Title
   document.getElementById("detail-title").textContent = d.title;
 
-  // Meta row: year · runtime · score
+  // Meta row: year · runtime · rating
   const year    = (d.release_date || "").slice(0, 4);
   const runtime = fmtRuntime(d.runtime);
-  const score   = d.vote_average ? `⭐ ${d.vote_average.toFixed(1)}` : "";
-  const votes   = d.vote_count   ? `(${d.vote_count.toLocaleString()} votes)` : "";
-  document.getElementById("detail-meta-row").innerHTML = [year, runtime, score, votes]
-    .filter(Boolean)
-    .map((v) => `<span>${escHtml(v)}</span>`)
-    .join('<span style="color:var(--border)">·</span>');
+
+  // IMDB rating takes priority; fall back to TMDB vote_average
+  let ratingHtml = "";
+  if (d.imdb_rating) {
+    ratingHtml = `<span class="imdb-rating">⭐ ${escHtml(d.imdb_rating)}<span class="imdb-badge">IMDB</span></span>`;
+  } else if (d.vote_average) {
+    ratingHtml = `<span>⭐ ${d.vote_average.toFixed(1)}</span>`;
+  }
+
+  const metaParts = [
+    year    ? `<span>${escHtml(year)}</span>`    : "",
+    runtime ? `<span>${escHtml(runtime)}</span>` : "",
+    ratingHtml,
+  ].filter(Boolean);
+  document.getElementById("detail-meta-row").innerHTML =
+    metaParts.join('<span class="meta-dot">·</span>');
 
   // Mood tags from genres
   const moods = getMoodTags(d.genres || []);
@@ -88,6 +98,17 @@ function render(d) {
       return url
         ? `<a class="provider-pill" href="${url}" target="_blank" rel="noopener noreferrer">${img}<span>${escHtml(p.name)}</span></a>`
         : `<span class="provider-pill">${img}<span>${escHtml(p.name)}</span></span>`;
+    }).join("");
+  }
+
+  // Available In — spoken language pills
+  const spokenLangs = d.spoken_languages || [];
+  if (spokenLangs.length) {
+    document.getElementById("avail-section").style.display = "block";
+    document.getElementById("avail-pills").innerHTML = spokenLangs.map((lang) => {
+      const q   = encodeURIComponent(`${d.title} ${lang.name}`).replace(/%20/g, "+");
+      const url = `https://www.netflix.com/search?q=${q}`;
+      return `<a class="lang-pill" href="${url}" target="_blank" rel="noopener noreferrer">${escHtml(lang.name)}</a>`;
     }).join("");
   }
 
@@ -165,7 +186,7 @@ async function detailAddToWatchlist() {
 }
 
 function openDetailTrailer() {
-  if (window._detailTrailerKey) openTrailer(window._detailTrailerKey);
+  if (window._detailTrailerKey) openHeroTrailer(window._detailTrailerKey);
 }
 
 loadDetail();

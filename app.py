@@ -42,6 +42,9 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-change-me")
 TMDB_BASE = "https://api.themoviedb.org/3"
 TMDB_KEY  = os.getenv("TMDB_API_KEY", "")
 
+OMDB_BASE = "http://www.omdbapi.com/"
+OMDB_KEY  = os.getenv("OMDB_API_KEY", "f524fe17")
+
 LANGUAGE_NAMES = {
     "hi": "Hindi",   "ko": "Korean",   "es": "Spanish",
     "ja": "Japanese", "fr": "French",   "it": "Italian",
@@ -331,7 +334,7 @@ def api_detail(media_type, tmdb_id):
     rating_endpoint = "release_dates" if media_type == "movie" else "content_ratings"
     data = _tmdb_get(
         f"/{media_type}/{tmdb_id}",
-        _extra={"append_to_response": f"credits,videos,watch/providers,{rating_endpoint},similar,recommendations,external_ids"},
+        _extra={"append_to_response": f"credits,videos,watch/providers,{rating_endpoint},similar,recommendations,external_ids,translations"},
         language="en-US",
     )
     if not data:
@@ -384,38 +387,67 @@ def api_detail(media_type, tmdb_id):
         for p in us.get("flatrate", [])
     ]
 
-    # External IDs (for deep-linking where available)
+    # External IDs
     ext = data.get("external_ids", {})
     external_ids = {k: v for k, v in ext.items() if v}
+    imdb_id = ext.get("imdb_id")
 
-    languages = [l.get("english_name") for l in data.get("spoken_languages", []) if l.get("english_name")]
-    runtime   = data.get("runtime") or next(iter(data.get("episode_run_time") or []), None)
+    # OMDB rating — fetch IMDB score using the IMDB ID
+    imdb_rating = None
+    if imdb_id:
+        try:
+            omdb_resp = requests.get(
+                OMDB_BASE,
+                params={"i": imdb_id, "apikey": OMDB_KEY},
+                timeout=4,
+            )
+            omdb_resp.raise_for_status()
+            od = omdb_resp.json()
+            if od.get("Response") == "True":
+                r = od.get("imdbRating")
+                if r and r != "N/A":
+                    imdb_rating = r  # e.g. "8.5"
+        except Exception:
+            pass
+
+    # Spoken languages — full objects for "Available In" section
+    spoken_languages = [
+        {"name": l.get("english_name"), "code": l.get("iso_639_1", "")}
+        for l in data.get("spoken_languages", [])
+        if l.get("english_name")
+    ]
+    languages = [l["name"] for l in spoken_languages]
+
+    runtime = data.get("runtime") or next(iter(data.get("episode_run_time") or []), None)
 
     similar = _tag_type(data.get("similar", {}).get("results", [])[:18], media_type)
     recs    = _tag_type(data.get("recommendations", {}).get("results", [])[:18], media_type)
 
     return jsonify({
-        "id":             data["id"],
-        "media_type":     media_type,
-        "title":          data.get("title") or data.get("name"),
-        "tagline":        data.get("tagline", ""),
-        "overview":       data.get("overview", ""),
-        "poster_path":    data.get("poster_path"),
-        "backdrop_path":  data.get("backdrop_path"),
-        "release_date":   data.get("release_date") or data.get("first_air_date", ""),
-        "runtime":        runtime,
-        "vote_average":   data.get("vote_average"),
-        "vote_count":     data.get("vote_count"),
-        "genres":         data.get("genres", []),
-        "content_rating": content_rating,
-        "languages":      languages,
-        "trailer":        trailer,
-        "cast":           cast,
-        "providers":      providers,
-        "watch_link":     watch_link,
-        "external_ids":   external_ids,
-        "similar":        similar,
-        "recommendations": recs,
+        "id":               data["id"],
+        "media_type":       media_type,
+        "title":            data.get("title") or data.get("name"),
+        "tagline":          data.get("tagline", ""),
+        "overview":         data.get("overview", ""),
+        "poster_path":      data.get("poster_path"),
+        "backdrop_path":    data.get("backdrop_path"),
+        "release_date":     data.get("release_date") or data.get("first_air_date", ""),
+        "runtime":          runtime,
+        "vote_average":     data.get("vote_average"),
+        "vote_count":       data.get("vote_count"),
+        "genres":           data.get("genres", []),
+        "content_rating":   content_rating,
+        "languages":        languages,
+        "spoken_languages": spoken_languages,
+        "imdb_id":          imdb_id,
+        "imdb_rating":      imdb_rating,
+        "trailer":          trailer,
+        "cast":             cast,
+        "providers":        providers,
+        "watch_link":       watch_link,
+        "external_ids":     external_ids,
+        "similar":          similar,
+        "recommendations":  recs,
     })
 
 

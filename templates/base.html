@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}Watchlist{% endblock %}</title>
+  <title>{% block title %}CineTrack{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -13,7 +13,7 @@
 <!-- ── Navbar ─────────────────────────────────────────────────────── -->
 <nav class="navbar" id="navbar">
   <div class="navbar-left">
-    <a class="navbar-logo" href="/">WATCHLIST</a>
+    <a class="navbar-logo" href="/">CineTrack</a>
     <ul class="nav-links">
       <li><a href="/" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">Home</a></li>
       <li><a href="/movies" class="nav-link {% if request.endpoint == 'movies_page' %}active{% endif %}">Movies</a></li>
@@ -49,8 +49,11 @@
     <button class="trailer-modal-close" onclick="closeTrailer()">✕</button>
     <div class="trailer-modal-iframe-wrap">
       <iframe id="trailer-modal-iframe" src="" frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
         allowfullscreen></iframe>
+    </div>
+    <div class="trailer-modal-footer">
+      <button class="btn btn-red trailer-fs-btn" onclick="requestTrailerFullscreen()">⛶ Full Screen</button>
     </div>
   </div>
 </div>

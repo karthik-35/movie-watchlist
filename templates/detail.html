@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Loading… — Watchlist{% endblock %}
+{% block title %}Loading… — CineTrack{% endblock %}
 
 {% block content %}
 <div id="detail-root" data-tmdb-id="{{ tmdb_id }}" data-media-type="{{ media_type }}">
@@ -30,7 +30,7 @@
         <div class="detail-languages" id="detail-languages"></div>
         <div class="detail-hero-actions">
           <button class="btn btn-red" id="detail-trailer-btn" style="display:none" onclick="openDetailTrailer()">
-            ▶ Play Trailer
+            ▶ Play
           </button>
           <button class="btn btn-outline-white" id="detail-add-btn" onclick="detailAddToWatchlist()">
             + My List
@@ -44,6 +44,14 @@
       <div class="detail-section-inner">
         <h2 class="section-heading">Where to Watch</h2>
         <div class="provider-pills" id="provider-pills"></div>
+      </div>
+    </section>
+
+    <!-- Available In (spoken languages) -->
+    <section class="detail-section" id="avail-section" style="display:none">
+      <div class="detail-section-inner">
+        <h2 class="section-heading">Available In</h2>
+        <div class="lang-pills" id="avail-pills"></div>
       </div>
     </section>
 

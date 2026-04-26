@@ -55,12 +55,7 @@ async function doSearch() {
       ? `${data.total_results.toLocaleString()} results for "${currentQuery}"`
       : `No results for "${currentQuery}"`;
 
-    resultsEl.innerHTML = results.map((r) =>
-      renderPosterCard(r, watchlistSet.has(`${r.id}-${r.media_type}`))
-    ).join("");
-
-    // Lazy-load providers for each card
-    results.forEach((r) => loadCardProviders(r.id, r.media_type, `pc-prov-${r.id}-${r.media_type}`));
+    resultsEl.innerHTML = results.map((r) => renderPosterCard(r)).join("");
 
     renderPagination(currentPage, Math.min(data.total_pages, 20));
   } catch {

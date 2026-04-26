@@ -276,8 +276,9 @@ async function loadBrowseHero(rows) {
     const title = item.title || item.name || "";
     const year  = (item.release_date || item.first_air_date || "").slice(0, 4);
     const type  = item.media_type;
-    const desc  = (item.overview || "").slice(0, 180) + ((item.overview || "").length > 180 ? "…" : "");
+    const desc  = (item.overview || "").slice(0, 200) + ((item.overview || "").length > 200 ? "…" : "");
     const score = item.vote_average ? item.vote_average.toFixed(1) : "";
+    const moods = getMoodTags((item.genre_ids || []).map((id) => ({ id }))).join(" · ");
 
     bgEl.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${item.backdrop_path})`;
     heroEl.style.display = "block";
@@ -288,15 +289,30 @@ async function loadBrowseHero(rows) {
       <div class="hero-meta">
         ${score ? `<span>⭐ ${score}</span><span>·</span>` : ""}
         ${year  ? `<span>${year}</span>` : ""}
+        ${moods ? `<span>·</span><span>${escHtml(moods)}</span>` : ""}
       </div>
       <p class="hero-desc">${escHtml(desc)}</p>
       <div class="hero-actions">
-        <a href="/title/${type}/${item.id}" class="btn btn-white">ℹ More Info</a>
-        <button class="btn btn-outline-white"
-          onclick="heroAddToList(${item.id},'${type}',${JSON.stringify(title)},${JSON.stringify(item.poster_path||'')},${JSON.stringify(desc)},${JSON.stringify(item.release_date||item.first_air_date||'')},${item.vote_average||0})">
-          + My List
-        </button>
+        <button class="btn btn-red" id="browse-hero-trailer-btn" style="display:none"
+          onclick="openHeroTrailer(window._browseHeroTrailerKey)">▶ Play</button>
+        <a href="/title/${type}/${item.id}" class="btn btn-more-info">
+          <svg class="btn-info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          More Info
+        </a>
       </div>`;
+
+    fetchBrowseHeroTrailer(item.id, type);
+  } catch { /* non-fatal */ }
+}
+
+async function fetchBrowseHeroTrailer(tmdbId, mediaType) {
+  try {
+    const data = await fetch(`/api/detail/${mediaType}/${tmdbId}`).then((r) => r.json());
+    if (data.trailer?.key) {
+      window._browseHeroTrailerKey = data.trailer.key;
+      const btn = document.getElementById("browse-hero-trailer-btn");
+      if (btn) btn.style.display = "inline-flex";
+    }
   } catch { /* non-fatal */ }
 }
 

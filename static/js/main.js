@@ -241,8 +241,6 @@ function renderRowCard(item) {
   const id      = item.id;
   const type    = item.media_type;
   const title   = item.title || item.name || "";
-  const year    = (item.release_date || item.first_air_date || "").slice(0, 4);
-  const score   = item.vote_average ? item.vote_average.toFixed(1) : "";
   const imgSrc  = item.backdrop_path
     ? `${BACKDROP_BASE}${item.backdrop_path}`
     : (item.poster_path ? `${POSTER_BASE}${item.poster_path}` : "");
@@ -256,11 +254,6 @@ function renderRowCard(item) {
   ${img}
   <div class="row-card-overlay">
     <div class="row-card-title">${escHtml(title)}</div>
-    <div class="row-card-meta">
-      ${year ? `<span>${year}</span>` : ""}
-      ${score ? `<span class="score-badge">⭐ ${score}</span>` : ""}
-      <span class="type-badge">${type === "movie" ? "Movie" : "TV"}</span>
-    </div>
   </div>
 </div>`;
 }
@@ -283,43 +276,21 @@ function renderTop10Card(item, rank) {
 </div>`;
 }
 
-/** Render a poster card (2:3) for search results or browse. */
-function renderPosterCard(item, inWatchlist = false) {
+/** Render a poster card (2:3) for search results — poster image + title only. */
+function renderPosterCard(item) {
   const id    = item.id;
   const type  = item.media_type;
   const title = item.title || item.name || "";
-  const year  = (item.release_date || item.first_air_date || "").slice(0, 4);
-  const score = item.vote_average ? item.vote_average.toFixed(1) : "";
 
   const img = item.poster_path
     ? `<img class="poster-card-img" src="${POSTER_BASE}${item.poster_path}" alt="${escHtml(title)}" loading="lazy">`
     : `<div class="poster-card-placeholder">🎬</div>`;
 
-  const moodHtml = renderMoodTagsFromIds(item.genre_ids || []);
-  const provId   = `pc-prov-${id}-${type}`;
-  const btnId    = `pc-btn-${id}-${type}`;
-
   return `
-<div class="poster-card" id="pc-${id}-${type}">
-  <div class="poster-card-img-wrap">
-    <a href="/title/${type}/${id}">${img}</a>
-  </div>
+<div class="poster-card" onclick="location.href='/title/${type}/${id}'">
+  <div class="poster-card-img-wrap">${img}</div>
   <div class="poster-card-body">
-    <a href="/title/${type}/${id}" class="poster-card-title">${escHtml(title)}</a>
-    <div class="poster-card-meta">
-      <span class="type-badge">${type === "movie" ? "Movie" : "TV"}</span>
-      ${year  ? `<span>${year}</span>` : ""}
-      ${score ? `<span class="score-badge">⭐ ${score}</span>` : ""}
-    </div>
-    <div class="mood-tags">${moodHtml}</div>
-    <div class="card-providers" id="${provId}"></div>
-    <div class="poster-card-actions">
-      <button id="${btnId}" class="btn btn-sm ${inWatchlist ? 'btn-success' : 'btn-red'}"
-        onclick="toggleWatchlistCard(${id},'${type}',${JSON.stringify(title)},${JSON.stringify(item.poster_path||'')},${JSON.stringify((item.overview||'').slice(0,300))},${JSON.stringify(item.release_date||item.first_air_date||'')},${item.vote_average||0})"
-        ${inWatchlist ? "disabled" : ""}>
-        ${inWatchlist ? "✓ In List" : "+ My List"}
-      </button>
-    </div>
+    <span class="poster-card-title">${escHtml(title)}</span>
   </div>
 </div>`;
 }
@@ -434,16 +405,103 @@ function openTrailer(youtubeKey) {
   _trailerKey = youtubeKey;
   const modal  = document.getElementById("trailer-modal");
   const iframe = document.getElementById("trailer-modal-iframe");
-  iframe.src   = `https://www.youtube-nocookie.com/embed/${youtubeKey}?autoplay=1&rel=0`;
+  iframe.src   = `https://www.youtube-nocookie.com/embed/${youtubeKey}?autoplay=1&rel=0&fs=1`;
   modal.classList.add("open");
   document.body.style.overflow = "hidden";
 }
+
+/**
+ * Hero "Play" button — builds a fullscreen overlay div with the YouTube
+ * embed and immediately requests fullscreen on the div (not the iframe).
+ * Must be called directly from a click handler so the browser treats it
+ * as a user gesture.
+ */
+function openHeroTrailer(youtubeKey) {
+  // Remove any stale overlay from a previous play
+  const prev = document.getElementById("hero-video-overlay");
+  if (prev) { prev._cleanup?.(); prev.remove(); }
+
+  // Build overlay
+  const overlay = document.createElement("div");
+  overlay.id = "hero-video-overlay";
+  overlay.className = "hero-video-overlay";
+
+  // YouTube iframe
+  const iframe = document.createElement("iframe");
+  iframe.src = `https://www.youtube-nocookie.com/embed/${youtubeKey}?autoplay=1&fs=1&modestbranding=1&rel=0`;
+  iframe.setAttribute("allow", "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen");
+  iframe.setAttribute("allowfullscreen", "");
+  iframe.className = "hero-video-iframe";
+
+  overlay.appendChild(iframe);
+  document.body.appendChild(overlay);
+  document.body.style.overflow = "hidden";
+
+  // ── Request fullscreen on the div synchronously within the click gesture ──
+  if (overlay.requestFullscreen) {
+    overlay.requestFullscreen().catch(() => {});
+  } else if (overlay.webkitRequestFullscreen) {
+    overlay.webkitRequestFullscreen();
+  } else if (overlay.mozRequestFullScreen) {
+    overlay.mozRequestFullScreen();
+  }
+
+  // ── ESC / fullscreen-exit listeners ──────────────────────────────────────
+  function onKeyDown(e) {
+    if (e.key === "Escape") closeHeroTrailer();
+  }
+  function onFsChange() {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      closeHeroTrailer();
+    }
+  }
+  document.addEventListener("keydown", onKeyDown);
+  document.addEventListener("fullscreenchange", onFsChange);
+  document.addEventListener("webkitfullscreenchange", onFsChange);
+
+  overlay._cleanup = () => {
+    document.removeEventListener("keydown", onKeyDown);
+    document.removeEventListener("fullscreenchange", onFsChange);
+    document.removeEventListener("webkitfullscreenchange", onFsChange);
+  };
+}
+
+function closeHeroTrailer() {
+  const overlay = document.getElementById("hero-video-overlay");
+  if (!overlay) return;
+  overlay._cleanup?.();
+  overlay.remove();
+  document.body.style.overflow = "";
+  if (document.fullscreenElement) {
+    document.exitFullscreen().catch(() => {});
+  } else if (document.webkitFullscreenElement) {
+    document.webkitExitFullscreen();
+  }
+}
+
+/** Request fullscreen on the trailer iframe — called from the modal's Full Screen button. */
+function requestTrailerFullscreen() {
+  const iframe = document.getElementById("trailer-modal-iframe");
+  if (iframe.requestFullscreen) {
+    iframe.requestFullscreen().catch(() => {});
+  } else if (iframe.webkitRequestFullscreen) {
+    iframe.webkitRequestFullscreen();
+  } else if (iframe.mozRequestFullScreen) {
+    iframe.mozRequestFullScreen();
+  }
+}
+
 function closeTrailer() {
   const modal  = document.getElementById("trailer-modal");
   const iframe = document.getElementById("trailer-modal-iframe");
   iframe.src   = "";
   modal.classList.remove("open");
   document.body.style.overflow = "";
+  if (document.fullscreenElement) {
+    document.exitFullscreen().catch(() => {});
+  } else if (document.webkitFullscreenElement) {
+    document.webkitExitFullscreen();
+  }
 }
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeTrailer(); });
 

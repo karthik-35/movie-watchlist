@@ -127,12 +127,11 @@ function renderHero(item) {
     <p class="hero-desc">${escHtml(desc)}</p>
     <div class="hero-actions">
       <button class="btn btn-red" id="hero-trailer-btn" style="display:none"
-        onclick="openTrailer(window._heroTrailerKey)">▶ Play Trailer</button>
-      <a href="/title/${type}/${item.id}" class="btn btn-white">ℹ More Info</a>
-      <button class="btn btn-outline-white"
-        onclick="heroAddToList(${item.id},'${type}',${JSON.stringify(title)},${JSON.stringify(item.poster_path||'')},${JSON.stringify(desc)},${JSON.stringify(item.release_date||item.first_air_date||'')},${item.vote_average||0})">
-        + My List
-      </button>
+        onclick="openHeroTrailer(window._heroTrailerKey)">▶ Play</button>
+      <a href="/title/${type}/${item.id}" class="btn btn-more-info">
+        <svg class="btn-info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        More Info
+      </a>
     </div>`;
 
   fetchHeroTrailer(item.id, type);
