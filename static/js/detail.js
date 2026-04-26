@@ -22,7 +22,7 @@ async function loadDetail() {
 }
 
 function render(d) {
-  document.title = `${d.title} — CineTrack`;
+  document.title = `${d.title} — CINEFLOW`;
 
   // Backdrop
   const heroImg = document.getElementById("detail-hero-img");
