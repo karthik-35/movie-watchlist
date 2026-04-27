@@ -411,69 +411,55 @@ function openTrailer(youtubeKey) {
 }
 
 /**
- * Hero "Play" button — builds a fullscreen overlay div with the YouTube
- * embed and immediately requests fullscreen on the div (not the iframe).
- * Must be called directly from a click handler so the browser treats it
- * as a user gesture.
+ * Hero "Play" — fullscreen overlay with native YouTube controls.
+ * requestFullscreen() is called synchronously on the overlay div inside
+ * the click gesture so the browser grants fullscreen.
  */
 function openHeroTrailer(youtubeKey) {
-  // Remove any stale overlay from a previous play
-  const prev = document.getElementById("hero-video-overlay");
+  const prev = document.getElementById('hero-video-overlay');
   if (prev) { prev._cleanup?.(); prev.remove(); }
 
-  // Build overlay
-  const overlay = document.createElement("div");
-  overlay.id = "hero-video-overlay";
-  overlay.className = "hero-video-overlay";
+  const overlay = document.createElement('div');
+  overlay.id        = 'hero-video-overlay';
+  overlay.className = 'hero-video-overlay';
 
-  // YouTube iframe
-  const iframe = document.createElement("iframe");
-  iframe.src = `https://www.youtube-nocookie.com/embed/${youtubeKey}?autoplay=1&controls=0&modestbranding=1&rel=0`;
-  iframe.setAttribute("allow", "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture");
-  iframe.className = "hero-video-iframe";
+  const iframe = document.createElement('iframe');
+  iframe.src = `https://www.youtube-nocookie.com/embed/${youtubeKey}?autoplay=1&controls=1&modestbranding=1&rel=0`;
+  iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen');
+  iframe.setAttribute('allowfullscreen', '');
+  iframe.className = 'hero-video-iframe';
 
   overlay.appendChild(iframe);
   document.body.appendChild(overlay);
-  document.body.style.overflow = "hidden";
+  document.body.style.overflow = 'hidden';
 
-  // Request fullscreen on the overlay div synchronously inside the click gesture
-  if (overlay.requestFullscreen) {
-    overlay.requestFullscreen().catch(() => {});
-  } else if (overlay.webkitRequestFullscreen) {
-    overlay.webkitRequestFullscreen();
-  }
+  // Fullscreen — synchronous, inside click gesture
+  if (overlay.requestFullscreen) overlay.requestFullscreen().catch(() => {});
+  else if (overlay.webkitRequestFullscreen) overlay.webkitRequestFullscreen();
 
-  function onKeyDown(e) {
-    if (e.key === "Escape") closeHeroTrailer();
-  }
-  // Close overlay when browser exits fullscreen (e.g. ESC key in native fullscreen)
-  function onFsChange() {
-    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-      closeHeroTrailer();
-    }
-  }
-  document.addEventListener("keydown", onKeyDown);
-  document.addEventListener("fullscreenchange", onFsChange);
-  document.addEventListener("webkitfullscreenchange", onFsChange);
+  const onKey = e => { if (e.key === 'Escape') closeHeroTrailer(); };
+  const onFs  = () => {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) closeHeroTrailer();
+  };
+  document.addEventListener('keydown', onKey);
+  document.addEventListener('fullscreenchange', onFs);
+  document.addEventListener('webkitfullscreenchange', onFs);
 
   overlay._cleanup = () => {
-    document.removeEventListener("keydown", onKeyDown);
-    document.removeEventListener("fullscreenchange", onFsChange);
-    document.removeEventListener("webkitfullscreenchange", onFsChange);
+    document.removeEventListener('keydown', onKey);
+    document.removeEventListener('fullscreenchange', onFs);
+    document.removeEventListener('webkitfullscreenchange', onFs);
   };
 }
 
 function closeHeroTrailer() {
-  const overlay = document.getElementById("hero-video-overlay");
+  const overlay = document.getElementById('hero-video-overlay');
   if (!overlay) return;
   overlay._cleanup?.();
   overlay.remove();
-  document.body.style.overflow = "";
-  if (document.fullscreenElement) {
-    document.exitFullscreen().catch(() => {});
-  } else if (document.webkitFullscreenElement) {
-    document.webkitExitFullscreen();
-  }
+  document.body.style.overflow = '';
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  else if (document.webkitFullscreenElement) document.webkitExitFullscreen();
 }
 
 function closeTrailer() {

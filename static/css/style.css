@@ -1264,7 +1264,6 @@ button { font-family: inherit; cursor: pointer; }
   height: 100vh;
   background: #000;
   z-index: 9999;
-  cursor: none;
 }
 
 .hero-video-iframe {
