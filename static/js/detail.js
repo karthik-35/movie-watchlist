@@ -159,32 +159,50 @@ async function checkInList() {
 function setAddBtn(inList) {
   const btn = document.getElementById("detail-add-btn");
   if (!btn) return;
-  btn.textContent = inList ? "✓ In My List" : "+ My List";
-  btn.className   = inList ? "btn btn-success" : "btn btn-outline-white";
-  btn.disabled    = inList;
+  const tooltip = inList ? "Remove from My List" : "Add to My List";
+  btn.textContent         = inList ? "✓" : "+";
+  btn.dataset.inList      = inList ? "1" : "0";
+  btn.dataset.tooltip     = tooltip;
+  btn.setAttribute("aria-label", tooltip);
+  btn.classList.toggle("in-list", inList);
+  btn.disabled = false;
 }
 
-async function detailAddToWatchlist() {
+async function detailToggleWatchlist() {
   if (!_detail) return;
-  const btn = document.getElementById("detail-add-btn");
-  btn.disabled = true; btn.textContent = "Adding…";
+  const btn    = document.getElementById("detail-add-btn");
+  const inList = btn.dataset.inList === "1";
+  btn.disabled = true;
 
-  const result = await apiPost("/api/watchlist/add", {
-    tmdb_id:      _detail.id,
-    media_type:   mediaType,
-    title:        _detail.title,
-    poster_path:  _detail.poster_path,
-    overview:     _detail.overview,
-    release_date: _detail.release_date,
-    vote_average: _detail.vote_average,
-  });
-
-  if (result.success) {
-    setAddBtn(true);
-    showToast(result.message, "success");
+  if (inList) {
+    const result = await apiPost("/api/watchlist/remove", {
+      tmdb_id:    _detail.id,
+      media_type: mediaType,
+    });
+    if (result.success) {
+      setAddBtn(false);
+      showToast("Removed from My List", "info");
+    } else {
+      btn.disabled = false;
+      showToast(result.error || "Failed to remove", "error");
+    }
   } else {
-    btn.disabled = false; btn.textContent = "+ My List";
-    showToast(result.error || "Failed to add", "error");
+    const result = await apiPost("/api/watchlist/add", {
+      tmdb_id:      _detail.id,
+      media_type:   mediaType,
+      title:        _detail.title,
+      poster_path:  _detail.poster_path,
+      overview:     _detail.overview,
+      release_date: _detail.release_date,
+      vote_average: _detail.vote_average,
+    });
+    if (result.success) {
+      setAddBtn(true);
+      showToast(result.message, "success");
+    } else {
+      btn.disabled = false;
+      showToast(result.error || "Failed to add", "error");
+    }
   }
 }
 

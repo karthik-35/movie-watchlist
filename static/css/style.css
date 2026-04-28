@@ -158,6 +158,52 @@ button { font-family: inherit; cursor: pointer; }
 }
 .btn-outline-white:hover { background: rgba(109,109,110,.9); }
 
+/* Circular watchlist toggle button (detail hero) */
+.watchlist-circle-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.75);
+  background: rgba(0,0,0,.35);
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: border-color .15s, background .15s;
+  backdrop-filter: blur(4px);
+  flex-shrink: 0;
+}
+.watchlist-circle-btn:hover {
+  border-color: #fff;
+  background: rgba(255,255,255,.15);
+}
+.watchlist-circle-btn.in-list { border-color: rgba(255,255,255,.75); }
+.watchlist-circle-btn:disabled { opacity: .5; cursor: default; }
+
+/* CSS tooltip via data-tooltip */
+.watchlist-circle-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20,20,20,.92);
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: .3rem .6rem;
+  border-radius: 4px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s;
+}
+.watchlist-circle-btn:hover::after { opacity: 1; }
+
 /* Hero "More Info" button — Netflix-style gray with circle-i icon */
 .btn-more-info {
   background: rgba(109,109,110,.7);

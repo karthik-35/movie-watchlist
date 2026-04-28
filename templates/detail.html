@@ -32,9 +32,10 @@
           <button class="btn btn-red" id="detail-trailer-btn" style="display:none" onclick="openDetailTrailer()">
             ▶ Play
           </button>
-          <button class="btn btn-outline-white" id="detail-add-btn" onclick="detailAddToWatchlist()">
-            + My List
-          </button>
+          <button class="watchlist-circle-btn" id="detail-add-btn"
+                  onclick="detailToggleWatchlist()"
+                  data-tooltip="Add to My List"
+                  aria-label="Add to My List">+</button>
         </div>
       </div>
     </div>
