@@ -30,65 +30,14 @@ const GENRE_MOODS = {
   37:    ["Rugged", "Classic", "Adventurous"],
 };
 
-// Provider ID → homepage URL
-const PLATFORM_URLS = {
-  8:    "https://www.netflix.com",
-  9:    "https://www.primevideo.com",
-  10:   "https://www.primevideo.com",
-  119:  "https://www.primevideo.com",
-  337:  "https://www.disneyplus.com",
-  350:  "https://tv.apple.com",
-  2:    "https://tv.apple.com",
-  384:  "https://www.max.com",
-  1899: "https://www.max.com",
-  31:   "https://www.max.com",
-  15:   "https://www.hulu.com",
-  386:  "https://www.peacocktv.com",
-  387:  "https://www.peacocktv.com",
-  531:  "https://www.paramountplus.com",
-  582:  "https://www.paramountplus.com",
-  257:  "https://www.fubo.tv",
-  243:  "https://www.philo.com",
-  246:  "https://www.mgmplus.com",
-  283:  "https://www.crunchyroll.com",
-  11:   "https://mubi.com",
-  73:   "https://tubitv.com",
-  1870: "https://www.zee5.com",
-  232:  "https://www.zee5.com",
-  1075: "https://www.aha.video",
-  1516: "https://www.aha.video",
-  220:  "https://www.etvwin.com",
-};
-
-const PLATFORM_URLS_BY_NAME = {
-  "netflix":       "https://www.netflix.com",
-  "prime video":   "https://www.primevideo.com",
-  "amazon":        "https://www.primevideo.com",
-  "disney":        "https://www.disneyplus.com",
-  "hotstar":       "https://www.hotstar.com",
-  "apple tv":      "https://tv.apple.com",
-  "max":           "https://www.max.com",
-  "hbo":           "https://www.max.com",
-  "hulu":          "https://www.hulu.com",
-  "peacock":       "https://www.peacocktv.com",
-  "paramount":     "https://www.paramountplus.com",
-  "zee5":          "https://www.zee5.com",
-  "aha":           "https://www.aha.video",
-  "etv win":       "https://www.etvwin.com",
-  "etv":           "https://www.etvwin.com",
-  "crunchyroll":   "https://www.crunchyroll.com",
-  "mubi":          "https://mubi.com",
-  "tubi":          "https://tubitv.com",
-  "fubo":          "https://www.fubo.tv",
-};
-
-// Provider ID → search URL function
+// Provider ID → search URL function (Tier 1 — known platforms)
 const PLATFORM_SEARCH_URLS = {
   8:    (q) => `https://www.netflix.com/search?q=${q}`,
   9:    (q) => `https://www.amazon.com/s?k=${q}&i=instant-video`,
   10:   (q) => `https://www.amazon.com/s?k=${q}&i=instant-video`,
   119:  (q) => `https://www.amazon.com/s?k=${q}&i=instant-video`,
   337:  (q) => `https://www.disneyplus.com/search/${q}`,
+  122:  (q) => `https://www.hotstar.com/in/search?q=${q}`,
   350:  (q) => `https://tv.apple.com/search?term=${q}`,
   2:    (q) => `https://tv.apple.com/search?term=${q}`,
   384:  (q) => `https://www.max.com/search?q=${q}`,
@@ -99,6 +48,20 @@ const PLATFORM_SEARCH_URLS = {
   387:  (q) => `https://www.peacocktv.com/search?q=${q}`,
   531:  (q) => `https://www.paramountplus.com/search/${q}`,
   582:  (q) => `https://www.paramountplus.com/search/${q}`,
+  257:  (q) => `https://www.fubo.tv/search/${q}`,
+  243:  (q) => `https://www.philo.com/search/${q}`,
+  246:  (q) => `https://www.mgmplus.com/search?q=${q}`,
+  73:   (q) => `https://tubitv.com/search/${q}`,
+  300:  (q) => `https://pluto.tv/search/${q}`,
+  283:  (q) => `https://www.crunchyroll.com/search?q=${q}`,
+  11:   (q) => `https://mubi.com/search/${q}`,
+  584:  (q) => `https://www.discoveryplus.com/search?q=${q}`,
+  99:   (q) => `https://www.shudder.com/search?q=${q}`,
+  151:  (q) => `https://www.britbox.com/search?q=${q}`,
+  43:   (q) => `https://www.starz.com/search?q=${q}`,
+  37:   (q) => `https://www.sho.com/search?q=${q}`,
+  526:  (q) => `https://www.amcplus.com/search?q=${q}`,
+  538:  (q) => `https://watch.plex.tv/search?q=${q}`,
   1870: (q) => `https://www.zee5.com/search?q=${q}`,
   232:  (q) => `https://www.zee5.com/search?q=${q}`,
   1075: (q) => `https://www.aha.video/search?q=${q}`,
@@ -106,27 +69,46 @@ const PLATFORM_SEARCH_URLS = {
   220:  (q) => `https://www.etvwin.com/search?q=${q}`,
 };
 
+// Platform name keyword → search URL function (Tier 1 — name-based fallback)
 const PLATFORM_SEARCH_BY_NAME = {
-  "netflix":     (q) => `https://www.netflix.com/search?q=${q}`,
-  "prime video": (q) => `https://www.amazon.com/s?k=${q}&i=instant-video`,
-  "amazon":      (q) => `https://www.amazon.com/s?k=${q}&i=instant-video`,
-  "disney":      (q) => `https://www.disneyplus.com/search/${q}`,
-  "hotstar":     (q) => `https://www.hotstar.com/in/search?q=${q}`,
-  "apple tv":    (q) => `https://tv.apple.com/search?term=${q}`,
-  "max":         (q) => `https://www.max.com/search?q=${q}`,
-  "hbo":         (q) => `https://www.max.com/search?q=${q}`,
-  "hulu":        (q) => `https://www.hulu.com/search?q=${q}`,
-  "peacock":     (q) => `https://www.peacocktv.com/search?q=${q}`,
-  "paramount":   (q) => `https://www.paramountplus.com/search/${q}`,
-  "zee5":        (q) => `https://www.zee5.com/search?q=${q}`,
-  "aha":         (q) => `https://www.aha.video/search?q=${q}`,
-  "etv win":     (q) => `https://www.etvwin.com/search?q=${q}`,
-  "etv":         (q) => `https://www.etvwin.com/search?q=${q}`,
+  "netflix":       (q) => `https://www.netflix.com/search?q=${q}`,
+  "prime video":   (q) => `https://www.amazon.com/s?k=${q}&i=instant-video`,
+  "amazon":        (q) => `https://www.amazon.com/s?k=${q}&i=instant-video`,
+  "disney":        (q) => `https://www.disneyplus.com/search/${q}`,
+  "hotstar":       (q) => `https://www.hotstar.com/in/search?q=${q}`,
+  "hulu":          (q) => `https://www.hulu.com/search?q=${q}`,
+  "hbo":           (q) => `https://www.max.com/search?q=${q}`,
+  "max":           (q) => `https://www.max.com/search?q=${q}`,
+  "apple tv":      (q) => `https://tv.apple.com/search?term=${q}`,
+  "peacock":       (q) => `https://www.peacocktv.com/search?q=${q}`,
+  "paramount":     (q) => `https://www.paramountplus.com/search/${q}`,
+  "youtube tv":    (q) => `https://tv.youtube.com/search/${q}`,
+  "philo":         (q) => `https://www.philo.com/search/${q}`,
+  "fubo":          (q) => `https://www.fubo.tv/search/${q}`,
+  "mgm":           (q) => `https://www.mgmplus.com/search?q=${q}`,
+  "tubi":          (q) => `https://tubitv.com/search/${q}`,
+  "pluto":         (q) => `https://pluto.tv/search/${q}`,
+  "crunchyroll":   (q) => `https://www.crunchyroll.com/search?q=${q}`,
+  "mubi":          (q) => `https://mubi.com/search/${q}`,
+  "discovery":     (q) => `https://www.discoveryplus.com/search?q=${q}`,
+  "shudder":       (q) => `https://www.shudder.com/search?q=${q}`,
+  "britbox":       (q) => `https://www.britbox.com/search?q=${q}`,
+  "starz":         (q) => `https://www.starz.com/search?q=${q}`,
+  "showtime":      (q) => `https://www.sho.com/search?q=${q}`,
+  "amc":           (q) => `https://www.amcplus.com/search?q=${q}`,
+  "plex":          (q) => `https://watch.plex.tv/search?q=${q}`,
+  "kanopy":        (q) => `https://www.kanopy.com/search/${q}`,
+  "hoopla":        (q) => `https://www.hoopladigital.com/search?q=${q}`,
+  "zee5":          (q) => `https://www.zee5.com/search?q=${q}`,
+  "aha":           (q) => `https://www.aha.video/search?q=${q}`,
+  "etv win":       (q) => `https://www.etvwin.com/search?q=${q}`,
+  "etv":           (q) => `https://www.etvwin.com/search?q=${q}`,
 };
 
 /**
- * Get the best URL for a platform button, preferring search links.
- * Returns null if no URL found.
+ * Get the best URL for a platform button.
+ * Tier 1: known platforms matched by provider ID or name keyword.
+ * Tier 2: Google search fallback — guarantees every button works.
  */
 function getPlatformUrl(provider, title) {
   const q = title ? encodeURIComponent(title).replace(/%20/g, "+") : "";
@@ -141,11 +123,12 @@ function getPlatformUrl(provider, title) {
     }
   }
 
-  if (PLATFORM_URLS[id]) return PLATFORM_URLS[id];
-
-  for (const [key, url] of Object.entries(PLATFORM_URLS_BY_NAME)) {
-    if (nameLower.includes(key)) return url;
+  // Tier 2: Google fallback for any unrecognized platform
+  if (q) {
+    const pName = encodeURIComponent(provider.name || "platform").replace(/%20/g, "+");
+    return `https://www.google.com/search?q=watch+${q}+on+${pName}`;
   }
+
   return null;
 }
 

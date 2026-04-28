@@ -82,17 +82,26 @@ function render(d) {
 
   // Providers (deduped, with smart search URLs)
   const uniqueProviders = deduplicateProviders(d.providers || []);
+  document.getElementById("providers-section").style.display = "block";
+
+  const titleQ  = encodeURIComponent(d.title || "").replace(/%20/g, "+");
+  const findUrl = `https://www.google.com/search?q=watch+${titleQ}+${year}+streaming+OTT+platform`;
+  const findBtnHtml = `<span class="flex-break"></span><a class="find-watch-btn" href="${findUrl}" target="_blank" rel="noopener noreferrer">🔍 Find where to watch</a>`;
+
   if (uniqueProviders.length) {
-    document.getElementById("providers-section").style.display = "block";
-    document.getElementById("provider-pills").innerHTML = uniqueProviders.map((p) => {
-      const url = getPlatformUrl(p, d.title || "");
-      const img = p.logo_url
-        ? `<img src="${p.logo_url}" alt="${escHtml(p.name)}" width="28" height="28" style="border-radius:6px;object-fit:cover">`
-        : "";
-      return url
-        ? `<a class="provider-pill" href="${url}" target="_blank" rel="noopener noreferrer">${img}<span>${escHtml(p.name)}</span></a>`
-        : `<span class="provider-pill">${img}<span>${escHtml(p.name)}</span></span>`;
-    }).join("");
+    document.getElementById("provider-pills").innerHTML =
+      uniqueProviders.map((p) => {
+        const url = getPlatformUrl(p, d.title || "");
+        const img = p.logo_url
+          ? `<img src="${p.logo_url}" alt="${escHtml(p.name)}" width="28" height="28" style="border-radius:6px;object-fit:cover">`
+          : "";
+        return url
+          ? `<a class="provider-pill" href="${url}" target="_blank" rel="noopener noreferrer">${img}<span>${escHtml(p.name)}</span></a>`
+          : `<span class="provider-pill">${img}<span>${escHtml(p.name)}</span></span>`;
+      }).join("") + findBtnHtml;
+  } else {
+    document.getElementById("provider-pills").innerHTML =
+      `<p class="no-providers-msg">Not found on major platforms</p>` + findBtnHtml;
   }
 
   // Available In — spoken language pills

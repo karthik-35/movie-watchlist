@@ -704,6 +704,38 @@ button { font-family: inherit; cursor: pointer; }
   object-fit: cover;
 }
 
+/* Flex line-break trick inside provider-pills */
+.flex-break { flex-basis: 100%; height: 0; }
+
+/* "Find where to watch" button */
+.find-watch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: .35rem .75rem;
+  font-size: .75rem;
+  color: var(--text-muted);
+  margin-top: .25rem;
+  transition: border-color var(--tr), color var(--tr);
+  text-decoration: none;
+}
+.find-watch-btn:hover {
+  border-color: var(--text-muted);
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* Shown when TMDB returns no providers */
+.no-providers-msg {
+  width: 100%;
+  font-size: .82rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
 /* Available In — language pills */
 .lang-pills {
   display: flex;
