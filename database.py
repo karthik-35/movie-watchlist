@@ -25,7 +25,8 @@ def init_db():
                 tmdb_id     INTEGER NOT NULL,
                 media_type  TEXT    NOT NULL,          -- 'movie' or 'tv'
                 title       TEXT    NOT NULL,
-                poster_path TEXT,
+                poster_path   TEXT,
+                backdrop_path TEXT,
                 overview    TEXT,
                 release_date TEXT,
                 vote_average REAL,
@@ -35,6 +36,11 @@ def init_db():
                 UNIQUE(tmdb_id, media_type)            -- prevent duplicate entries
             )
         """)
+        # Migrate existing databases that predate the backdrop_path column
+        try:
+            conn.execute("ALTER TABLE watchlist ADD COLUMN backdrop_path TEXT")
+        except Exception:
+            pass  # column already exists
         conn.commit()
 
 
@@ -74,14 +80,14 @@ def get_item(tmdb_id, media_type):
 # Write helpers
 # ---------------------------------------------------------------------------
 
-def add_item(tmdb_id, media_type, title, poster_path, overview, release_date, vote_average):
+def add_item(tmdb_id, media_type, title, poster_path, backdrop_path, overview, release_date, vote_average):
     """Insert a new item; silently ignore if it's already in the list."""
     with get_connection() as conn:
         conn.execute("""
             INSERT OR IGNORE INTO watchlist
-                (tmdb_id, media_type, title, poster_path, overview, release_date, vote_average)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (tmdb_id, media_type, title, poster_path, overview, release_date, vote_average))
+                (tmdb_id, media_type, title, poster_path, backdrop_path, overview, release_date, vote_average)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (tmdb_id, media_type, title, poster_path, backdrop_path, overview, release_date, vote_average))
         conn.commit()
 
 

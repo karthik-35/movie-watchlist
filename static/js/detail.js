@@ -188,13 +188,14 @@ async function detailToggleWatchlist() {
     }
   } else {
     const result = await apiPost("/api/watchlist/add", {
-      tmdb_id:      _detail.id,
-      media_type:   mediaType,
-      title:        _detail.title,
-      poster_path:  _detail.poster_path,
-      overview:     _detail.overview,
-      release_date: _detail.release_date,
-      vote_average: _detail.vote_average,
+      tmdb_id:       _detail.id,
+      media_type:    mediaType,
+      title:         _detail.title,
+      poster_path:   _detail.poster_path,
+      backdrop_path: _detail.backdrop_path,
+      overview:      _detail.overview,
+      release_date:  _detail.release_date,
+      vote_average:  _detail.vote_average,
     });
     if (result.success) {
       setAddBtn(true);

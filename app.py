@@ -489,13 +489,14 @@ def api_add():
     if not all(data.get(k) for k in ("tmdb_id", "media_type", "title")):
         return jsonify({"error": "Missing required fields"}), 400
     db.add_item(
-        tmdb_id      = data["tmdb_id"],
-        media_type   = data["media_type"],
-        title        = data["title"],
-        poster_path  = data.get("poster_path"),
-        overview     = data.get("overview", ""),
-        release_date = data.get("release_date", ""),
-        vote_average = data.get("vote_average"),
+        tmdb_id       = data["tmdb_id"],
+        media_type    = data["media_type"],
+        title         = data["title"],
+        poster_path   = data.get("poster_path"),
+        backdrop_path = data.get("backdrop_path"),
+        overview      = data.get("overview", ""),
+        release_date  = data.get("release_date", ""),
+        vote_average  = data.get("vote_average"),
     )
     return jsonify({"success": True, "message": f"'{data['title']}' added to My List"})
 
