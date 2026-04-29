@@ -104,6 +104,11 @@ function render(d) {
       `<p class="no-providers-msg">Not found on major platforms</p>` + findBtnHtml;
   }
 
+  // Buy Tickets (in-theaters movies only)
+  if (d.is_now_playing && mediaType === "movie") {
+    renderBuyTickets(d);
+  }
+
   // Available In — spoken language pills
   const spokenLangs = d.spoken_languages || [];
   if (spokenLangs.length) {
@@ -205,6 +210,66 @@ async function detailToggleWatchlist() {
       showToast(result.error || "Failed to add", "error");
     }
   }
+}
+
+function renderBuyTickets(d) {
+  const city    = localStorage.getItem("theater_city") || "";
+  const title   = d.title || "";
+  const year    = (d.release_date || "").slice(0, 4);
+  const runtime = fmtRuntime(d.runtime) || "";
+  const rating  = d.content_rating || "";
+
+  function toSlug(str) {
+    return str
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, "-");
+  }
+
+  const slug   = toSlug(title);
+  const tmdbId = d.id;
+  const cityQ  = city ? "+" + encodeURIComponent(city) : "";
+  const titleQ = encodeURIComponent(title);
+  const yearQ  = year ? "+" + encodeURIComponent(year) : "";
+
+  function gSearch(...terms) {
+    return "https://www.google.com/search?q=" + terms.map((s) => encodeURIComponent(s).replace(/%20/g, "+")).join("+");
+  }
+
+  const TICKET_PLATFORMS = [
+    { name: "Cinemark",        domain: "cinemark.com",       url: `https://www.cinemark.com/movies/${slug}` },
+    { name: "AMC Theatres",    domain: "amctheatres.com",    url: gSearch(title, year, "AMC", "movie", "tickets") },
+    { name: "Fandango",        domain: "fandango.com",       url: gSearch(title, year, "Fandango", "movie", "tickets") },
+    { name: "Atom",            domain: "atomtickets.com",    url: gSearch(title, year, "Atom", "movie", "tickets") },
+    { name: "Regal",           domain: "regmovies.com",      url: gSearch(title, year, "Regal", "movie", "tickets") },
+    { name: "Harkins",         domain: "harkins.com",        url: gSearch(title, year, "Harkins", "movie", "tickets") },
+    { name: "Marcus Theatres", domain: "marcustheatres.com", url: gSearch(title, year, "Marcus", "movie", "tickets") },
+    { name: "Cinépolis",       domain: "cinepolisusa.com",   url: gSearch(title, year, "Cinepolis", "movie", "tickets") },
+    { name: "Google Movies",   domain: "google.com",         url: `https://www.google.com/search?q=${titleQ}${yearQ}+movie+tickets+near+me${cityQ}` },
+  ];
+
+  const metaPartsBase = [
+    `<span class="ticket-tag">Cinema</span>`,
+    rating  ? `<span class="ticket-rating">${escHtml(rating)}</span>`   : "",
+    runtime ? `<span class="ticket-runtime">${escHtml(runtime)}</span>` : "",
+  ].filter(Boolean).join("");
+
+  document.getElementById("ticket-platforms").innerHTML = TICKET_PLATFORMS.map((p) => {
+    const logo = `https://www.google.com/s2/favicons?domain=${p.domain}&sz=64`;
+    return `
+<div class="ticket-row">
+  <img class="ticket-logo" src="${logo}" alt="${escHtml(p.name)}"
+       onerror="this.style.display='none'">
+  <div class="ticket-info">
+    <span class="ticket-name">${escHtml(p.name)}</span>
+    <div class="ticket-meta">${metaPartsBase}</div>
+  </div>
+  <a class="ticket-btn" href="${p.url}" target="_blank" rel="noopener noreferrer">Buy Tickets</a>
+</div>`;
+  }).join("");
+
+  document.getElementById("tickets-section").style.display = "block";
 }
 
 function openDetailTrailer() {

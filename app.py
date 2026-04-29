@@ -30,6 +30,7 @@ POST /api/watchlist/remove      Remove item
 
 import os
 import requests
+from datetime import date, timedelta
 from flask import Flask, jsonify, redirect, render_template, request
 from dotenv import load_dotenv
 import database as db
@@ -123,6 +124,10 @@ def detail_page(media_type, tmdb_id):
 @app.route("/mylist")
 def mylist_page():
     return render_template("mylist.html")
+
+@app.route("/theaters")
+def theaters_page():
+    return render_template("theaters.html")
 
 
 # ── TMDB helpers ──────────────────────────────────────────────────────────────
@@ -420,6 +425,20 @@ def api_detail(media_type, tmdb_id):
 
     runtime = data.get("runtime") or next(iter(data.get("episode_run_time") or []), None)
 
+    # Check if this movie is currently in US theaters (theatrical release in last 60 days)
+    is_now_playing = False
+    if media_type == "movie":
+        sixty_days_ago = (date.today() - timedelta(days=60)).isoformat()
+        today_str      = date.today().isoformat()
+        for entry in data.get("release_dates", {}).get("results", []):
+            if entry.get("iso_3166_1") == "US":
+                for rd in entry.get("release_dates", []):
+                    if rd.get("type") in (2, 3):  # 2=theatrical limited, 3=theatrical
+                        rd_date = rd.get("release_date", "")[:10]
+                        if rd_date and sixty_days_ago <= rd_date <= today_str:
+                            is_now_playing = True
+                break
+
     similar = _tag_type(data.get("similar", {}).get("results", [])[:18], media_type)
     recs    = _tag_type(data.get("recommendations", {}).get("results", [])[:18], media_type)
 
@@ -448,6 +467,7 @@ def api_detail(media_type, tmdb_id):
         "external_ids":     external_ids,
         "similar":          similar,
         "recommendations":  recs,
+        "is_now_playing":   is_now_playing,
     })
 
 
@@ -472,6 +492,60 @@ def api_providers(tmdb_id):
         for p in us.get("flatrate", [])
     ]
     return jsonify({"providers": providers})
+
+
+@app.route("/api/theaters/now_playing")
+def api_theaters_now_playing():
+    page = request.args.get("page", 1, type=int)
+    lang = request.args.get("lang")
+    if lang:
+        today_str      = date.today().isoformat()
+        sixty_days_ago = (date.today() - timedelta(days=60)).isoformat()
+        extra = {
+            "primary_release_date.gte": sixty_days_ago,
+            "primary_release_date.lte": today_str,
+        }
+        data = _tmdb_get("/discover/movie", _extra=extra,
+                         with_original_language=lang,
+                         sort_by="popularity.desc", page=page)
+    else:
+        data = _tmdb_get("/movie/now_playing", page=page, region="US")
+    if not data:
+        return jsonify({"error": "Failed to reach TMDB"}), 502
+    return jsonify({
+        "results":     _tag_type(data.get("results", []), "movie"),
+        "total_pages": data.get("total_pages", 1),
+    })
+
+
+@app.route("/api/theaters/upcoming")
+def api_theaters_upcoming():
+    page    = request.args.get("page", 1, type=int)
+    lang    = request.args.get("lang")
+    today   = date.today()
+    cutoff  = today + timedelta(days=90)
+    if lang:
+        extra = {
+            "primary_release_date.gte": today.isoformat(),
+            "primary_release_date.lte": cutoff.isoformat(),
+        }
+        data = _tmdb_get("/discover/movie", _extra=extra,
+                         with_original_language=lang,
+                         sort_by="primary_release_date.asc", page=page)
+    else:
+        data = _tmdb_get("/movie/upcoming", page=page, region="US")
+    if not data:
+        return jsonify({"error": "Failed to reach TMDB"}), 502
+    results = _tag_type(data.get("results", []), "movie")
+    if not lang:
+        results = [r for r in results
+                   if r.get("release_date")
+                   and today.isoformat() <= r["release_date"] <= cutoff.isoformat()]
+        results.sort(key=lambda r: r.get("release_date", ""))
+    return jsonify({
+        "results":     results,
+        "total_pages": data.get("total_pages", 1),
+    })
 
 
 @app.route("/api/watchlist", methods=["GET"])
