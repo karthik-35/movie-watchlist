@@ -355,8 +355,8 @@ async function loadBrowse() {
   if (category === "movies") buildGenreBar(MOVIE_GENRES);
   else if (category === "tv") buildGenreBar(TV_GENRES);
 
-  // Hero (non-language pages)
-  if (!isLang) loadBrowseHero(rows);
+  // Hero — movies and tv only (not popular, not language pages)
+  if (!isLang && category !== "popular") loadBrowseHero(rows);
 
   // Build row shells
   rowsEl.innerHTML = rows.map((r, i) => makeRowSection(r.title, `browse-row-${i}`, r.top10)).join("");

@@ -11,7 +11,7 @@
 </div>
 {% endif %}
 
-<div class="browse-page">
+<div class="browse-page{% if category in ('movies', 'tv') %} browse-page--has-hero{% endif %}">
 
   {% if is_language is defined and is_language %}
   <!-- Netflix-style preferences bar for language pages -->
@@ -46,8 +46,8 @@
     </div>
   </div>
 
-  {% else %}
-  <!-- Standard header for non-language browse pages -->
+  {% elif category == 'popular' %}
+  <!-- Title only on Popular (no hero banner on that page) -->
   <div class="browse-header">
     <h1 class="browse-title">{{ page_title }}</h1>
   </div>

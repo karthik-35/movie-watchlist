@@ -915,6 +915,7 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ── Browse page ─────────────────────────────────────────────────────────── */
 .browse-page { padding-top: var(--navbar-h); min-height: 100vh; }
+.browse-page--has-hero { padding-top: 0; }
 .browse-header {
   padding: 2rem 4% 1rem;
   display: flex;
@@ -945,8 +946,8 @@ button { font-family: inherit; cursor: pointer; }
   transform: scale(1.03);
 }
 .browse-hero-content {
-  bottom: 12%;
-  max-width: 50%;
+  bottom: 15%;
+  max-width: 45%;
 }
 
 /* Netflix-style language preferences bar */
@@ -1138,7 +1139,7 @@ button { font-family: inherit; cursor: pointer; }
 /* 5-column landscape grid */
 .mylist-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: .35rem;
   padding: 0 4%;
 }
@@ -1360,16 +1361,15 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 1200px) {
-  .mylist-grid { grid-template-columns: repeat(4, 1fr); }
+  .mylist-grid { grid-template-columns: repeat(5, 1fr); }
 }
 
 @media (max-width: 900px) {
   .hero-content { max-width: 70%; }
   .detail-hero-body { max-width: 100%; }
-  .mylist-grid { grid-template-columns: repeat(3, 1fr); }
+  .mylist-grid { grid-template-columns: repeat(4, 1fr); }
   .top10-num { font-size: 8rem; min-width: 68px; }
   .top10-card-link { width: 115px; }
-  .browse-hero { height: 70vh; min-height: 420px; }
   .browse-hero-content { max-width: 70%; }
 }
 
@@ -1383,10 +1383,10 @@ button { font-family: inherit; cursor: pointer; }
   .row-card { flex: 0 0 170px; }
   .navbar-logo { font-size: 1.15rem; }
   .row-arrow { display: none; }
-  .mylist-grid { grid-template-columns: repeat(2, 1fr); gap: .3rem; padding: 0 3%; }
+  .mylist-grid { grid-template-columns: repeat(3, 1fr); gap: .3rem; padding: 0 3%; }
   .top10-num { font-size: 5.5rem; min-width: 48px; }
   .top10-card-link { width: 92px; margin-left: -1.25rem; }
-  .browse-hero { height: 65vh; min-height: 360px; }
+  .browse-hero { height: 70vh; }
   .browse-hero-content { max-width: 90%; }
   .genre-panel { min-width: 260px; max-width: calc(100vw - 2rem); }
 }
