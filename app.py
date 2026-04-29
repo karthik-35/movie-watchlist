@@ -494,58 +494,77 @@ def api_providers(tmdb_id):
     return jsonify({"providers": providers})
 
 
-@app.route("/api/theaters/now_playing")
-def api_theaters_now_playing():
-    page = request.args.get("page", 1, type=int)
-    lang = request.args.get("lang")
-    if lang:
-        today_str      = date.today().isoformat()
-        sixty_days_ago = (date.today() - timedelta(days=60)).isoformat()
-        extra = {
-            "primary_release_date.gte": sixty_days_ago,
-            "primary_release_date.lte": today_str,
-        }
-        data = _tmdb_get("/discover/movie", _extra=extra,
-                         with_original_language=lang,
-                         sort_by="popularity.desc", page=page)
-    else:
-        data = _tmdb_get("/movie/now_playing", page=page, region="US")
-    if not data:
-        return jsonify({"error": "Failed to reach TMDB"}), 502
-    return jsonify({
-        "results":     _tag_type(data.get("results", []), "movie"),
-        "total_pages": data.get("total_pages", 1),
-    })
-
-
 @app.route("/api/theaters/upcoming")
 def api_theaters_upcoming():
-    page    = request.args.get("page", 1, type=int)
-    lang    = request.args.get("lang")
-    today   = date.today()
-    cutoff  = today + timedelta(days=90)
+    page       = request.args.get("page", 1, type=int)
+    lang       = request.args.get("lang")
+    today      = date.today()
+    cutoff     = today + timedelta(days=90)
+    today_str  = today.isoformat()
+    cutoff_str = cutoff.isoformat()
+
     if lang:
+        # Language-specific: paginated discover query
         extra = {
-            "primary_release_date.gte": today.isoformat(),
-            "primary_release_date.lte": cutoff.isoformat(),
+            "primary_release_date.gte": today_str,
+            "primary_release_date.lte": cutoff_str,
         }
         data = _tmdb_get("/discover/movie", _extra=extra,
                          with_original_language=lang,
                          sort_by="primary_release_date.asc", page=page)
-    else:
-        data = _tmdb_get("/movie/upcoming", page=page, region="US")
-    if not data:
-        return jsonify({"error": "Failed to reach TMDB"}), 502
-    results = _tag_type(data.get("results", []), "movie")
-    if not lang:
-        results = [r for r in results
+        if not data:
+            return jsonify({"error": "Failed to reach TMDB"}), 502
+        results = [r for r in _tag_type(data.get("results", []), "movie")
                    if r.get("release_date")
-                   and today.isoformat() <= r["release_date"] <= cutoff.isoformat()]
-        results.sort(key=lambda r: r.get("release_date", ""))
-    return jsonify({
-        "results":     results,
-        "total_pages": data.get("total_pages", 1),
-    })
+                   and today_str <= r["release_date"] <= cutoff_str]
+        return jsonify({
+            "results":     results,
+            "total_pages": data.get("total_pages", 1),
+        })
+
+    # All: merge US upcoming (4 pages) + Indian-language discover (2 pages each)
+    INDIAN_LANGS = ["hi", "te", "ta", "ml", "kn", "mr"]
+    seen    = set()
+    results = []
+
+    def collect(items):
+        for r in _tag_type(items, "movie"):
+            if r["id"] not in seen:
+                seen.add(r["id"])
+                results.append(r)
+
+    # US upcoming — 4 pages
+    for p in range(1, 5):
+        data = _tmdb_get("/movie/upcoming", page=p, region="US")
+        if not data:
+            break
+        collect(data.get("results", []))
+        if p >= data.get("total_pages", 1):
+            break
+
+    # Indian-language upcoming — 2 pages per language via discover
+    extra = {
+        "primary_release_date.gte": today_str,
+        "primary_release_date.lte": cutoff_str,
+    }
+    for lc in INDIAN_LANGS:
+        for p in range(1, 3):
+            data = _tmdb_get("/discover/movie", _extra=extra,
+                             with_original_language=lc,
+                             sort_by="primary_release_date.asc", page=p)
+            if not data:
+                break
+            collect(data.get("results", []))
+            if p >= data.get("total_pages", 1):
+                break
+
+    # Keep only the 90-day window, sort soonest first
+    results = [r for r in results
+               if r.get("release_date")
+               and today_str <= r["release_date"] <= cutoff_str]
+    results.sort(key=lambda r: r.get("release_date", ""))
+
+    return jsonify({"results": results, "total_pages": 1})
 
 
 @app.route("/api/watchlist", methods=["GET"])

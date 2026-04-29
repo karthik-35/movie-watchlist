@@ -1377,29 +1377,6 @@ button { font-family: inherit; cursor: pointer; }
 
 .theaters-title { font-size: 1.75rem; font-weight: 800; }
 
-.city-selector {
-  display: flex;
-  align-items: center;
-  gap: .45rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: .45rem .8rem;
-  transition: border-color var(--tr);
-}
-.city-selector:focus-within { border-color: var(--text-muted); }
-.city-icon { font-size: .9rem; }
-.city-input {
-  background: none;
-  border: none;
-  color: var(--text);
-  font-size: .875rem;
-  font-family: inherit;
-  outline: none;
-  width: 200px;
-}
-.city-input::placeholder { color: var(--text-muted); }
-
 /* Tabs */
 .theaters-tabs {
   display: flex;
@@ -1552,6 +1529,79 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 .theaters-load-more { text-align: center; padding: 2rem; }
+
+/* ── Theater platform cards (Now Showing tab) ────────────────────────────── */
+.theater-platforms-intro {
+  padding: 1.5rem 4% .25rem;
+  font-size: .875rem;
+  color: var(--text-muted);
+}
+
+.theater-platforms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 1rem;
+  padding: 1rem 4% 3rem;
+}
+
+.theater-platform-card {
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.4rem 1.25rem;
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color var(--tr), background var(--tr), transform .2s;
+}
+.theater-platform-card:hover {
+  border-color: rgba(255,255,255,.28);
+  background: var(--surface2);
+  transform: translateY(-4px);
+  text-decoration: none;
+  color: var(--text);
+}
+
+.theater-platform-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: #fff;
+  padding: 3px;
+  flex-shrink: 0;
+}
+
+.theater-platform-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.theater-platform-desc {
+  font-size: .8rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  flex: 1;
+}
+
+.theater-platform-btn {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  background: var(--red);
+  color: #fff;
+  border-radius: var(--radius);
+  padding: .4rem .95rem;
+  font-size: .8rem;
+  font-weight: 700;
+  margin-top: .25rem;
+  transition: background var(--tr);
+  white-space: nowrap;
+}
+.theater-platform-card:hover .theater-platform-btn { background: var(--red-dark); }
 
 /* ── Buy Tickets section (detail page) ───────────────────────────────────── */
 .ticket-platforms {

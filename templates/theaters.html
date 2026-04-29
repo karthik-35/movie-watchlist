@@ -4,58 +4,76 @@
 {% block content %}
 <div class="theaters-page">
 
-  <!-- Header -->
   <div class="theaters-header">
     <h1 class="theaters-title">In Theaters</h1>
-    <div class="city-selector">
-      <span class="city-icon">📍</span>
-      <input type="text" id="city-input" class="city-input" placeholder="Enter your city" />
-    </div>
   </div>
 
-  <!-- Tabs -->
   <div class="theaters-tabs">
     <button class="theaters-tab active" id="tab-now" onclick="switchTab('now')">Now Showing</button>
     <button class="theaters-tab" id="tab-coming" onclick="switchTab('coming')">Coming Soon</button>
   </div>
 
-  <!-- Language filter pills -->
-  <div class="theaters-lang-bar" id="lang-bar">
-    <button class="theaters-lang-pill active" data-lang="" onclick="selectLang(this,'')">All</button>
-    <button class="theaters-lang-pill" data-lang="en" onclick="selectLang(this,'en')">English</button>
-    <button class="theaters-lang-pill" data-lang="hi" onclick="selectLang(this,'hi')">Hindi</button>
-    <button class="theaters-lang-pill" data-lang="te" onclick="selectLang(this,'te')">Telugu</button>
-    <button class="theaters-lang-pill" data-lang="ta" onclick="selectLang(this,'ta')">Tamil</button>
-    <button class="theaters-lang-pill" data-lang="ml" onclick="selectLang(this,'ml')">Malayalam</button>
-    <button class="theaters-lang-pill" data-lang="ko" onclick="selectLang(this,'ko')">Korean</button>
-    <button class="theaters-lang-pill" data-lang="es" onclick="selectLang(this,'es')">Spanish</button>
-    <button class="theaters-lang-pill" data-lang="fr" onclick="selectLang(this,'fr')">French</button>
-    <button class="theaters-lang-pill" data-lang="ja" onclick="selectLang(this,'ja')">Japanese</button>
-    <button class="theaters-lang-pill" data-lang="ar" onclick="selectLang(this,'ar')">Arabic</button>
-    <button class="theaters-lang-pill" data-lang="tr" onclick="selectLang(this,'tr')">Turkish</button>
-    <button class="theaters-lang-pill" data-lang="th" onclick="selectLang(this,'th')">Thai</button>
-    <button class="theaters-lang-pill" data-lang="vi" onclick="selectLang(this,'vi')">Vietnamese</button>
-    <button class="theaters-lang-pill" data-lang="pt" onclick="selectLang(this,'pt')">Portuguese</button>
-    <button class="theaters-lang-pill" data-lang="de" onclick="selectLang(this,'de')">German</button>
-    <button class="theaters-lang-pill" data-lang="it" onclick="selectLang(this,'it')">Italian</button>
+  <!-- ── Now Showing: theater platform cards ─────────────────────────────── -->
+  <div id="now-showing-content">
+    <p class="theater-platforms-intro">Select a theater chain to browse current showtimes and buy tickets.</p>
+    <div class="theater-platforms-grid">
+
+      <a class="theater-platform-card" href="https://www.cinemark.com/movies"
+         target="_blank" rel="noopener noreferrer">
+        <img class="theater-platform-logo"
+             src="https://www.google.com/s2/favicons?domain=cinemark.com&sz=64"
+             alt="Cinemark" onerror="this.style.display='none'">
+        <div class="theater-platform-name">Cinemark</div>
+        <div class="theater-platform-desc">Browse now-playing films and secure your seats online.</div>
+        <span class="theater-platform-btn">See Movies →</span>
+      </a>
+
+      <a class="theater-platform-card" href="https://www.amctheatres.com/movies"
+         target="_blank" rel="noopener noreferrer">
+        <img class="theater-platform-logo"
+             src="https://www.google.com/s2/favicons?domain=amctheatres.com&sz=64"
+             alt="AMC Theatres" onerror="this.style.display='none'">
+        <div class="theater-platform-name">AMC Theatres</div>
+        <div class="theater-platform-desc">Find showtimes at your nearest AMC location.</div>
+        <span class="theater-platform-btn">See Movies →</span>
+      </a>
+
+      <a class="theater-platform-card" href="https://www.fandango.com/movies-in-theaters"
+         target="_blank" rel="noopener noreferrer">
+        <img class="theater-platform-logo"
+             src="https://www.google.com/s2/favicons?domain=fandango.com&sz=64"
+             alt="Fandango" onerror="this.style.display='none'">
+        <div class="theater-platform-name">Fandango</div>
+        <div class="theater-platform-desc">Search showtimes across all major chains and book tickets.</div>
+        <span class="theater-platform-btn">Find Showtimes →</span>
+      </a>
+
+      <a class="theater-platform-card" href="https://www.regmovies.com/movies"
+         target="_blank" rel="noopener noreferrer">
+        <img class="theater-platform-logo"
+             src="https://www.google.com/s2/favicons?domain=regmovies.com&sz=64"
+             alt="Regal" onerror="this.style.display='none'">
+        <div class="theater-platform-name">Regal</div>
+        <div class="theater-platform-desc">Check what's playing at Regal cinemas near you.</div>
+        <span class="theater-platform-btn">See Movies →</span>
+      </a>
+
+    </div>
   </div>
 
-  <!-- Movie grid -->
-  <div class="theaters-grid" id="theaters-grid"></div>
-
-  <!-- Loading spinner -->
-  <div class="theaters-loading" id="theaters-loading" style="display:none">
-    <div class="theaters-spinner"></div>
-  </div>
-
-  <!-- Empty state -->
-  <div class="theaters-empty" id="theaters-empty" style="display:none">
-    <p>No movies found for the selected filters.</p>
-  </div>
-
-  <!-- Load more -->
-  <div class="theaters-load-more" id="theaters-load-more" style="display:none">
-    <button class="btn btn-outline-white" onclick="loadMore()">Load More</button>
+  <!-- ── Coming Soon: TMDB upcoming grid (unchanged) ─────────────────────── -->
+  <div id="coming-soon-content" style="display:none">
+    <div class="theaters-lang-bar" id="lang-bar"></div>
+    <div class="theaters-grid" id="theaters-grid"></div>
+    <div class="theaters-loading" id="theaters-loading" style="display:none">
+      <div class="theaters-spinner"></div>
+    </div>
+    <div class="theaters-empty" id="theaters-empty" style="display:none">
+      <p>No movies found for the selected filters.</p>
+    </div>
+    <div class="theaters-load-more" id="theaters-load-more" style="display:none">
+      <button class="btn btn-outline-white" onclick="loadMore()">Load More</button>
+    </div>
   </div>
 
 </div>

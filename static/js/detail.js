@@ -213,7 +213,6 @@ async function detailToggleWatchlist() {
 }
 
 function renderBuyTickets(d) {
-  const city    = localStorage.getItem("theater_city") || "";
   const title   = d.title || "";
   const year    = (d.release_date || "").slice(0, 4);
   const runtime = fmtRuntime(d.runtime) || "";
@@ -229,9 +228,6 @@ function renderBuyTickets(d) {
 
   const slug   = toSlug(title);
   const tmdbId = d.id;
-  const cityQ  = city ? "+" + encodeURIComponent(city) : "";
-  const titleQ = encodeURIComponent(title);
-  const yearQ  = year ? "+" + encodeURIComponent(year) : "";
 
   function gSearch(...terms) {
     return "https://www.google.com/search?q=" + terms.map((s) => encodeURIComponent(s).replace(/%20/g, "+")).join("+");
@@ -246,7 +242,7 @@ function renderBuyTickets(d) {
     { name: "Harkins",         domain: "harkins.com",        url: gSearch(title, year, "Harkins", "movie", "tickets") },
     { name: "Marcus Theatres", domain: "marcustheatres.com", url: gSearch(title, year, "Marcus", "movie", "tickets") },
     { name: "Cinépolis",       domain: "cinepolisusa.com",   url: gSearch(title, year, "Cinepolis", "movie", "tickets") },
-    { name: "Google Movies",   domain: "google.com",         url: `https://www.google.com/search?q=${titleQ}${yearQ}+movie+tickets+near+me${cityQ}` },
+    { name: "Google Movies",   domain: "google.com",         url: gSearch(title, year, "movie", "tickets", "near", "me") },
   ];
 
   const metaPartsBase = [

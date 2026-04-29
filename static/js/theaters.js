@@ -1,6 +1,17 @@
 /**
- * theaters.js — "In Theaters" page: Now Showing + Coming Soon tabs.
+ * theaters.js — "In Theaters" page.
+ *
+ * Now Showing  — static platform cards, no API calls.
+ * Coming Soon  — TMDB /upcoming, paginated, server-side lang filter,
+ *                dynamic language pills built from the initial "All" fetch.
  */
+
+const LANG_NAMES = {
+  en: "English", hi: "Hindi",  te: "Telugu",  ta: "Tamil",   ml: "Malayalam",
+  ko: "Korean",  ja: "Japanese", es: "Spanish", fr: "French",  de: "German",
+  ar: "Arabic",  tr: "Turkish",  th: "Thai",    vi: "Vietnamese", pt: "Portuguese",
+  it: "Italian", zh: "Chinese",  ru: "Russian", pl: "Polish",
+};
 
 let currentTab  = "now";
 let currentLang = "";
@@ -9,33 +20,24 @@ let totalPages  = 1;
 let allMovies   = [];
 let isLoading   = false;
 
-// ── City selector ────────────────────────────────────────────────────────────
-
-const cityInput = document.getElementById("city-input");
-cityInput.value = localStorage.getItem("theater_city") || "";
-cityInput.addEventListener("change", () => {
-  localStorage.setItem("theater_city", cityInput.value.trim());
-});
-cityInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    cityInput.blur();
-    localStorage.setItem("theater_city", cityInput.value.trim());
-  }
-});
-
 // ── Tab switching ────────────────────────────────────────────────────────────
 
 function switchTab(tab) {
   if (tab === currentTab) return;
   currentTab  = tab;
+  currentLang = "";
   currentPage = 1;
   allMovies   = [];
+
   document.getElementById("tab-now").classList.toggle("active", tab === "now");
   document.getElementById("tab-coming").classList.toggle("active", tab === "coming");
-  loadMovies();
+  document.getElementById("now-showing-content").style.display  = tab === "now"    ? "block" : "none";
+  document.getElementById("coming-soon-content").style.display  = tab === "coming" ? "block" : "none";
+
+  if (tab === "coming") loadMovies();
 }
 
-// ── Language filter ──────────────────────────────────────────────────────────
+// ── Language filter (Coming Soon only) ──────────────────────────────────────
 
 function selectLang(el, lang) {
   document.querySelectorAll(".theaters-lang-pill").forEach((p) => p.classList.remove("active"));
@@ -47,6 +49,27 @@ function selectLang(el, lang) {
   loadMovies();
 }
 
+function buildLangPills(movies) {
+  const bar   = document.getElementById("lang-bar");
+  const seen  = new Set();
+  const codes = [];
+  for (const m of movies) {
+    const c = m.original_language;
+    if (c && !seen.has(c)) { seen.add(c); codes.push(c); }
+  }
+  codes.sort((a, b) => {
+    if (a === "en") return -1;
+    if (b === "en") return  1;
+    return (LANG_NAMES[a] || a).localeCompare(LANG_NAMES[b] || b);
+  });
+  let html = `<button class="theaters-lang-pill active" data-lang="" onclick="selectLang(this,'')">All</button>`;
+  for (const code of codes) {
+    const name = LANG_NAMES[code] || code.toUpperCase();
+    html += `<button class="theaters-lang-pill" data-lang="${code}" onclick="selectLang(this,'${code}')">${escHtml(name)}</button>`;
+  }
+  bar.innerHTML = html;
+}
+
 // ── Load more ────────────────────────────────────────────────────────────────
 
 function loadMore() {
@@ -55,41 +78,35 @@ function loadMore() {
   loadMovies(true);
 }
 
-// ── Fetch & render ───────────────────────────────────────────────────────────
+// ── Fetch & render (Coming Soon) ─────────────────────────────────────────────
 
 async function loadMovies(append = false) {
   if (isLoading) return;
   isLoading = true;
 
-  document.getElementById("theaters-loading").style.display = "flex";
-  document.getElementById("theaters-empty").style.display   = "none";
-  document.getElementById("theaters-load-more").style.display = "none";
+  document.getElementById("theaters-loading").style.display    = "flex";
+  document.getElementById("theaters-empty").style.display      = "none";
+  document.getElementById("theaters-load-more").style.display  = "none";
 
-  const endpoint = currentTab === "now"
-    ? "/api/theaters/now_playing"
-    : "/api/theaters/upcoming";
-  let url = `${endpoint}?page=${currentPage}`;
+  let url = `/api/theaters/upcoming?page=${currentPage}`;
   if (currentLang) url += `&lang=${currentLang}`;
 
   try {
-    const data    = await fetch(url).then((r) => r.json());
-    const movies  = data.results || [];
-    totalPages    = data.total_pages || 1;
+    const data   = await fetch(url).then((r) => r.json());
+    const movies = data.results || [];
+    totalPages   = data.total_pages || 1;
 
     if (append) {
       allMovies = [...allMovies, ...movies];
     } else {
       allMovies = movies;
+      if (!currentLang) buildLangPills(allMovies);
     }
 
-    renderGrid();
+    document.getElementById("theaters-grid").innerHTML = allMovies.map(renderComingSoonCard).join("");
 
-    if (currentPage < totalPages) {
-      document.getElementById("theaters-load-more").style.display = "block";
-    }
-    if (allMovies.length === 0) {
-      document.getElementById("theaters-empty").style.display = "block";
-    }
+    if (currentPage < totalPages) document.getElementById("theaters-load-more").style.display = "block";
+    if (allMovies.length === 0)   document.getElementById("theaters-empty").style.display    = "block";
   } catch {
     showToast("Failed to load movies", "error");
   }
@@ -98,12 +115,7 @@ async function loadMovies(append = false) {
   isLoading = false;
 }
 
-function renderGrid() {
-  const grid = document.getElementById("theaters-grid");
-  grid.innerHTML = allMovies.map(renderTheatersCard).join("");
-}
-
-// ── Card renderer ────────────────────────────────────────────────────────────
+// ── Card renderer (Coming Soon) ──────────────────────────────────────────────
 
 function formatRelDate(dateStr) {
   if (!dateStr) return "";
@@ -111,7 +123,7 @@ function formatRelDate(dateStr) {
   return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-function renderTheatersCard(movie) {
+function renderComingSoonCard(movie) {
   const id          = movie.id;
   const title       = movie.title || "";
   const releaseDate = movie.release_date || "";
@@ -136,7 +148,3 @@ function renderTheatersCard(movie) {
   </div>
 </div>`;
 }
-
-// ── Init ─────────────────────────────────────────────────────────────────────
-
-loadMovies();
