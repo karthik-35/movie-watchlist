@@ -31,6 +31,7 @@ POST /api/watchlist/remove      Remove item
 import os
 import requests
 from datetime import date, timedelta
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from flask import Flask, jsonify, redirect, render_template, request
 from dotenv import load_dotenv
 import database as db
@@ -522,49 +523,78 @@ def api_theaters_upcoming():
             "total_pages": data.get("total_pages", 1),
         })
 
-    # All: merge US upcoming (4 pages) + Indian-language discover (2 pages each)
-    INDIAN_LANGS = ["hi", "te", "ta", "ml", "kn", "mr"]
-    seen    = set()
-    results = []
-
-    def collect(items):
-        for r in _tag_type(items, "movie"):
-            if r["id"] not in seen:
-                seen.add(r["id"])
-                results.append(r)
-
-    # US upcoming — 4 pages
-    for p in range(1, 5):
-        data = _tmdb_get("/movie/upcoming", page=p, region="US")
-        if not data:
-            break
-        collect(data.get("results", []))
-        if p >= data.get("total_pages", 1):
-            break
-
-    # Indian-language upcoming — 2 pages per language via discover
+    # All: fetch all language codes in parallel, sort by language group then date
+    ALL_FETCH_LANGS = [
+        "en", "hi", "te", "ta", "ml", "kn", "mr", "bn",
+        "ko", "ja", "zh", "th", "vi", "ar", "tr", "ru",
+        "es", "fr", "de", "it", "pt",
+    ]
+    LANG_GROUP = {
+        "en": 0, "hi": 1,
+        "te": 2, "ta": 2, "ml": 2, "kn": 2, "mr": 2, "bn": 2,
+        "ko": 3, "ja": 3, "zh": 3, "th": 3, "vi": 3,
+    }
     extra = {
         "primary_release_date.gte": today_str,
         "primary_release_date.lte": cutoff_str,
     }
-    for lc in INDIAN_LANGS:
+
+    def fetch_lang_pages(lc):
+        items = []
         for p in range(1, 3):
             data = _tmdb_get("/discover/movie", _extra=extra,
                              with_original_language=lc,
                              sort_by="primary_release_date.asc", page=p)
             if not data:
                 break
-            collect(data.get("results", []))
+            items.extend(_tag_type(data.get("results", []), "movie"))
             if p >= data.get("total_pages", 1):
                 break
+        return items
 
-    # Keep only the 90-day window, sort soonest first
+    seen    = set()
+    results = []
+    with ThreadPoolExecutor(max_workers=12) as ex:
+        futures = [ex.submit(fetch_lang_pages, lc) for lc in ALL_FETCH_LANGS]
+        for fut in as_completed(futures):
+            for r in fut.result():
+                if r["id"] not in seen:
+                    seen.add(r["id"])
+                    results.append(r)
+
     results = [r for r in results
                if r.get("release_date")
                and today_str <= r["release_date"] <= cutoff_str]
-    results.sort(key=lambda r: r.get("release_date", ""))
-
+    results.sort(key=lambda r: (
+        LANG_GROUP.get(r.get("original_language", ""), 4),
+        r.get("release_date", ""),
+    ))
     return jsonify({"results": results, "total_pages": 1})
+
+
+@app.route("/api/theaters/hot")
+def api_theaters_hot():
+    data = _tmdb_get("/movie/now_playing", region="US", page=1)
+    if not data:
+        return jsonify({"error": "Failed to reach TMDB"}), 502
+
+    movies = data.get("results", [])[:10]
+
+    def fetch_trailer(movie):
+        vid_data = _tmdb_get(f"/movie/{movie['id']}/videos")
+        if vid_data:
+            for v in vid_data.get("results", []):
+                if v.get("site") == "YouTube" and v.get("type") == "Trailer":
+                    movie["trailer_key"] = v["key"]
+                    break
+        return movie
+
+    with ThreadPoolExecutor(max_workers=10) as ex:
+        futures = {ex.submit(fetch_trailer, m): m for m in movies}
+        enriched = [f.result() for f in as_completed(futures)]
+
+    enriched.sort(key=lambda m: m.get("popularity", 0), reverse=True)
+    return jsonify({"results": enriched})
 
 
 @app.route("/api/watchlist", methods=["GET"])

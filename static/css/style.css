@@ -1402,35 +1402,12 @@ button { font-family: inherit; cursor: pointer; }
 .theaters-tab:hover { color: var(--text); }
 .theaters-tab.active { color: var(--text); border-bottom-color: var(--red); }
 
-/* Language filter pills */
-.theaters-lang-bar {
+/* Coming Soon language selector */
+.cs-lang-bar {
   display: flex;
-  flex-wrap: wrap;
-  gap: .5rem;
+  align-items: center;
+  gap: .75rem;
   padding: 1.25rem 4%;
-}
-
-.theaters-lang-pill {
-  background: rgba(255,255,255,.07);
-  border: 1px solid rgba(255,255,255,.15);
-  color: var(--text-muted);
-  border-radius: 999px;
-  padding: .35rem 1rem;
-  font-size: .82rem;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  font-family: inherit;
-  transition: background var(--tr), border-color var(--tr), color var(--tr);
-}
-.theaters-lang-pill:hover {
-  background: rgba(255,255,255,.12);
-  color: var(--text);
-}
-.theaters-lang-pill.active {
-  background: var(--red);
-  border-color: var(--red);
-  color: #fff;
 }
 
 /* Movie grid */
@@ -1477,13 +1454,19 @@ button { font-family: inherit; cursor: pointer; }
   color: var(--text-dim);
 }
 
-.theaters-date-badge {
+.theaters-card-info-bar {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 2rem .6rem .5rem;
-  background: linear-gradient(to top, rgba(0,0,0,.88) 0%, transparent 100%);
+  padding: 2.5rem .6rem .45rem;
+  background: linear-gradient(to top, rgba(0,0,0,.92) 0%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+
+.theaters-card-date-line {
   font-size: .72rem;
   font-weight: 700;
   color: #fff;
@@ -1491,7 +1474,25 @@ button { font-family: inherit; cursor: pointer; }
   letter-spacing: .2px;
 }
 
-.theaters-card-body { padding: .5rem .6rem .6rem; }
+.theaters-card-rating-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.theaters-card-rating-score {
+  font-size: .75rem;
+  font-weight: 700;
+  color: #ffd700;
+}
+
+.theaters-card-vote-count {
+  font-size: .65rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.theaters-card-body { padding: .5rem .6rem .65rem; }
 
 .theaters-card-title {
   font-size: .85rem;
@@ -1502,6 +1503,23 @@ button { font-family: inherit; cursor: pointer; }
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.theaters-card-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem;
+  margin-top: .35rem;
+}
+
+.theaters-card-genre-tag {
+  font-size: .62rem;
+  font-weight: 500;
+  padding: .1rem .35rem;
+  border-radius: 3px;
+  background: rgba(255,255,255,.1);
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
 /* Loading / empty */
@@ -1603,101 +1621,47 @@ button { font-family: inherit; cursor: pointer; }
 }
 .theater-platform-card:hover .theater-platform-btn { background: var(--red-dark); }
 
-/* ── Buy Tickets section (detail page) ───────────────────────────────────── */
-.ticket-platforms {
+/* ── Hot movies section (Now Showing) ────────────────────────────────────── */
+.hot-section {
+  margin: 0 0 2rem;
+  padding-top: 1.5rem;
+}
+#hot-track {
+  grid-template-columns: repeat(5, 1fr);
+  padding: 0 20%;
+}
+#theaters-grid {
+  padding: 0 13%;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+}
+.hot-loading {
   display: flex;
-  flex-direction: column;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-  max-width: 720px;
+  justify-content: center;
+  padding: 2rem;
 }
 
-.ticket-row {
+/* ── Now Showing divider ─────────────────────────────────────────────────── */
+.now-showing-divider {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: .85rem 1.1rem;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  transition: background var(--tr);
+  gap: .75rem;
+  margin: 0 0 1.5rem;
 }
-.ticket-row:last-child { border-bottom: none; }
-.ticket-row:hover { background: var(--surface2); }
-
-.ticket-logo {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  object-fit: contain;
-  flex-shrink: 0;
-  background: #fff;
-  padding: 3px;
-}
-
-.ticket-info {
+.now-showing-divider::before,
+.now-showing-divider::after {
+  content: "";
   flex: 1;
-  min-width: 0;
+  height: 1px;
+  background: var(--border);
 }
-
-.ticket-name {
-  font-size: .88rem;
-  font-weight: 700;
-  color: var(--text);
-  display: block;
-  margin-bottom: .28rem;
-}
-
-.ticket-meta {
-  display: flex;
-  align-items: center;
-  gap: .45rem;
-  flex-wrap: wrap;
-}
-
-.ticket-tag {
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.18);
-  color: var(--text-muted);
-  font-size: .68rem;
-  font-weight: 700;
-  padding: 1px 7px;
-  border-radius: 3px;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-}
-
-.ticket-rating {
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  font-size: .68rem;
-  font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 2px;
-}
-
-.ticket-runtime {
+.now-showing-divider-label {
   font-size: .75rem;
-  color: var(--text-muted);
-}
-
-.ticket-btn {
-  flex-shrink: 0;
-  background: var(--red);
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  padding: .45rem 1.1rem;
-  font-size: .82rem;
   font-weight: 700;
-  cursor: pointer;
-  text-decoration: none;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
   white-space: nowrap;
-  transition: background var(--tr);
-  display: inline-flex;
-  align-items: center;
 }
-.ticket-btn:hover { background: var(--red-dark); color: #fff; text-decoration: none; }
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 1200px) {

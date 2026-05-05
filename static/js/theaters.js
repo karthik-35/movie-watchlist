@@ -6,68 +6,134 @@
  *                dynamic language pills built from the initial "All" fetch.
  */
 
-const LANG_NAMES = {
-  en: "English", hi: "Hindi",  te: "Telugu",  ta: "Tamil",   ml: "Malayalam",
-  ko: "Korean",  ja: "Japanese", es: "Spanish", fr: "French",  de: "German",
-  ar: "Arabic",  tr: "Turkish",  th: "Thai",    vi: "Vietnamese", pt: "Portuguese",
-  it: "Italian", zh: "Chinese",  ru: "Russian", pl: "Polish",
+const GENRE_NAMES = {
+  28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy",
+  80: "Crime", 99: "Documentary", 18: "Drama", 10751: "Family",
+  14: "Fantasy", 36: "History", 27: "Horror", 10402: "Music",
+  9648: "Mystery", 10749: "Romance", 878: "Sci-Fi",
+  10770: "TV Movie", 53: "Thriller", 10752: "War", 37: "Western",
 };
 
+
 let currentTab  = "now";
-let currentLang = "";
+let currentLang = "en";
 let currentPage = 1;
 let totalPages  = 1;
 let allMovies   = [];
 let isLoading   = false;
+
+function toSlug(str) {
+  return str.toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-");
+}
+
+// ── Hot movies (Now Showing) ─────────────────────────────────────────────────
+
+async function loadHotMovies() {
+  const track   = document.getElementById("hot-track");
+  const loading = document.getElementById("hot-loading");
+  if (!track) return;
+
+  loading.style.display = "flex";
+
+  try {
+    const data   = await fetch("/api/theaters/hot").then((r) => r.json());
+    const movies = data.results || [];
+    track.innerHTML = movies.map(renderHotCard).join("");
+  } catch {
+    track.innerHTML = `<p style="color:var(--text-muted);padding:1rem">Failed to load hot movies.</p>`;
+  }
+
+  loading.style.display = "none";
+}
+
+function formatVotes(count) {
+  if (!count) return "";
+  if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M+ Votes`;
+  if (count >= 1_000)     return `${(count / 1_000).toFixed(1)}K+ Votes`;
+  return `${count} Votes`;
+}
+
+function getGenreNames(ids = []) {
+  return ids.slice(0, 3).map((id) => GENRE_NAMES[id]).filter(Boolean);
+}
+
+function renderMovieCard(movie, { showDate = false } = {}) {
+  const id         = movie.id;
+  const title      = movie.title || "";
+  const relDate    = movie.release_date || "";
+  const posterSrc  = movie.poster_path ? `${POSTER_BASE}${movie.poster_path}` : "";
+  const rating     = movie.vote_average ? movie.vote_average.toFixed(1) : "";
+  const voteCount  = formatVotes(movie.vote_count);
+  const genreNames = getGenreNames(movie.genre_ids || []);
+
+  const img = posterSrc
+    ? `<img class="theaters-card-img" src="${escHtml(posterSrc)}" alt="${escHtml(title)}" loading="lazy">`
+    : `<div class="theaters-card-placeholder">🎬</div>`;
+
+  const dateLine = showDate && relDate
+    ? `<div class="theaters-card-date-line">${escHtml(formatRelDate(relDate))}</div>`
+    : "";
+
+  const ratingRow = rating
+    ? `<div class="theaters-card-rating-row">
+        <span class="theaters-card-rating-score">⭐ ${escHtml(rating)}/10</span>
+       </div>`
+    : "";
+
+  const infoBar = (dateLine || ratingRow)
+    ? `<div class="theaters-card-info-bar">${dateLine}${ratingRow}</div>`
+    : "";
+
+  const genresHtml = genreNames.length
+    ? `<div class="theaters-card-genres">${genreNames.map((g) => `<span class="theaters-card-genre-tag">${escHtml(g)}</span>`).join("")}</div>`
+    : "";
+
+  return `
+<div class="theaters-card" onclick="location.href='/title/movie/${id}'">
+  <div class="theaters-card-img-wrap">
+    ${img}
+    ${infoBar}
+  </div>
+  <div class="theaters-card-body">
+    <span class="theaters-card-title">${escHtml(title)}</span>
+    ${genresHtml}
+  </div>
+</div>`;
+}
+
+function renderHotCard(movie) {
+  return renderMovieCard(movie, { showDate: false });
+}
 
 // ── Tab switching ────────────────────────────────────────────────────────────
 
 function switchTab(tab) {
   if (tab === currentTab) return;
   currentTab  = tab;
-  currentLang = "";
   currentPage = 1;
   allMovies   = [];
 
   document.getElementById("tab-now").classList.toggle("active", tab === "now");
   document.getElementById("tab-coming").classList.toggle("active", tab === "coming");
-  document.getElementById("now-showing-content").style.display  = tab === "now"    ? "block" : "none";
-  document.getElementById("coming-soon-content").style.display  = tab === "coming" ? "block" : "none";
+  document.getElementById("now-showing-content").style.display = tab === "now"    ? "block" : "none";
+  document.getElementById("coming-soon-content").style.display = tab === "coming" ? "block" : "none";
 
-  if (tab === "coming") loadMovies();
+  if (tab === "coming") {
+    currentLang = "en";
+    const sel = document.getElementById("cs-lang-select");
+    if (sel) sel.value = "en";
+    loadMovies();
+  }
 }
 
-// ── Language filter (Coming Soon only) ──────────────────────────────────────
+// ── Language filter (Coming Soon) ────────────────────────────────────────────
 
-function selectLang(el, lang) {
-  document.querySelectorAll(".theaters-lang-pill").forEach((p) => p.classList.remove("active"));
-  el.classList.add("active");
-  if (lang === currentLang) return;
-  currentLang = lang;
+function onLangChange(val) {
+  if (val === currentLang) return;
+  currentLang = val;
   currentPage = 1;
   allMovies   = [];
   loadMovies();
-}
-
-function buildLangPills(movies) {
-  const bar   = document.getElementById("lang-bar");
-  const seen  = new Set();
-  const codes = [];
-  for (const m of movies) {
-    const c = m.original_language;
-    if (c && !seen.has(c)) { seen.add(c); codes.push(c); }
-  }
-  codes.sort((a, b) => {
-    if (a === "en") return -1;
-    if (b === "en") return  1;
-    return (LANG_NAMES[a] || a).localeCompare(LANG_NAMES[b] || b);
-  });
-  let html = `<button class="theaters-lang-pill active" data-lang="" onclick="selectLang(this,'')">All</button>`;
-  for (const code of codes) {
-    const name = LANG_NAMES[code] || code.toUpperCase();
-    html += `<button class="theaters-lang-pill" data-lang="${code}" onclick="selectLang(this,'${code}')">${escHtml(name)}</button>`;
-  }
-  bar.innerHTML = html;
 }
 
 // ── Load more ────────────────────────────────────────────────────────────────
@@ -100,7 +166,6 @@ async function loadMovies(append = false) {
       allMovies = [...allMovies, ...movies];
     } else {
       allMovies = movies;
-      if (!currentLang) buildLangPills(allMovies);
     }
 
     document.getElementById("theaters-grid").innerHTML = allMovies.map(renderComingSoonCard).join("");
@@ -124,27 +189,9 @@ function formatRelDate(dateStr) {
 }
 
 function renderComingSoonCard(movie) {
-  const id          = movie.id;
-  const title       = movie.title || "";
-  const releaseDate = movie.release_date || "";
-  const posterSrc   = movie.poster_path ? `${POSTER_BASE}${movie.poster_path}` : "";
-
-  const img = posterSrc
-    ? `<img class="theaters-card-img" src="${posterSrc}" alt="${escHtml(title)}" loading="lazy">`
-    : `<div class="theaters-card-placeholder">🎬</div>`;
-
-  const dateBadge = releaseDate
-    ? `<div class="theaters-date-badge">${formatRelDate(releaseDate)}</div>`
-    : "";
-
-  return `
-<div class="theaters-card" onclick="location.href='/title/movie/${id}'">
-  <div class="theaters-card-img-wrap">
-    ${img}
-    ${dateBadge}
-  </div>
-  <div class="theaters-card-body">
-    <span class="theaters-card-title">${escHtml(title)}</span>
-  </div>
-</div>`;
+  return renderMovieCard(movie, { showDate: true });
 }
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+
+loadHotMovies();
